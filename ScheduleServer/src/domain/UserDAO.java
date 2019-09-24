@@ -14,6 +14,7 @@ import static com.schedule.web.Constant.DUP_USER;
 import static com.schedule.web.Constant.DUP_ID;
 import static com.schedule.web.Constant.ERR;
 import static com.schedule.web.Constant.SUCCESS;
+import static com.schedule.web.Constant.ERR_LOG_PW;
 
 public class UserDAO {
 	static {
@@ -77,7 +78,36 @@ public class UserDAO {
 
 		return flag;
 	}
-
+	
+	public int chkPw(String id, String pw) {
+		Connection con = null;
+		int code = ERR;
+		
+		try {
+			con = getConnection();
+			String sql = "select password from usertable where id=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, id);
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next()) {
+				if(pw.equals(rs.getString("password")))
+					code = SUCCESS;
+				else
+					code = ERR_LOG_PW;
+			}
+			else {
+				code = ERR;
+			}
+		}catch(Exception e) {
+			System.out.println("LOGIN_PW_CHK_ERR: "+e.toString());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
 	public int insertUser(String id, String pw, String name, String email) {
 		Connection con = null;
 		int flag = SUCCESS;

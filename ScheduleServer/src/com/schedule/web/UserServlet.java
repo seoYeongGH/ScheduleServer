@@ -8,9 +8,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import static com.schedule.web.Constant.DUP_ID;
 import static com.schedule.web.Constant.SUCCESS;
+import static com.schedule.web.Constant.ERR_LOG_ID;
+import static com.schedule.web.Constant.ERR_LOG_PW;
 
 import domain.UserDAO;
 
@@ -30,7 +33,9 @@ public class UserServlet extends HttpServlet {
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		 dao = new UserDAO();
+		HttpSession session= request.getSession();
+		
+		dao = new UserDAO();
 		 PrintWriter out = response.getWriter();
 			
 			String doing = request.getParameter("doing");
@@ -45,6 +50,18 @@ public class UserServlet extends HttpServlet {
 				Integer code = dao.insertUser(request.getParameter("id"), request.getParameter("password"),request.getParameter("name"),request.getParameter("email"));
 				out.print(code);
 			}
+			else if("login".equals(doing)) {
+				String id = request.getParameter("id");
+				
+				if(!dao.chkIdDup(id)) {
+					out.print(ERR_LOG_ID);
+				}
+				else {
+					Integer code = dao.chkPw(id, request.getParameter("password")); 
+					out.print(code);
+				}
+			}
+			
 	}
 
 }
