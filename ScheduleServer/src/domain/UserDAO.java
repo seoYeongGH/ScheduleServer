@@ -10,11 +10,15 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import com.schedule.mail.MailSender;
+
 import static com.schedule.web.Constant.DUP_USER;
 import static com.schedule.web.Constant.DUP_ID;
 import static com.schedule.web.Constant.ERR;
 import static com.schedule.web.Constant.SUCCESS;
 import static com.schedule.web.Constant.ERR_LOG_PW;
+import static com.schedule.web.Constant.NO_DATA;
+
 
 public class UserDAO {
 	static {
@@ -164,8 +168,8 @@ public class UserDAO {
 			String sql = "select code from usertable where email=? and name=?";
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, email);
-			pstmt.setString(2, name);
+			pstmt.setString(1, name);
+			pstmt.setString(2, email);
 
 			ResultSet rs = pstmt.executeQuery();
 
@@ -181,5 +185,76 @@ public class UserDAO {
 		}
 
 		return flag;
+	}
+	
+	public int findId(String name, String email) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select id from usertable where name=? and email=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, name);
+			pstmt.setString(2, email);
+			
+			ResultSet rs = pstmt.executeQuery();
+			String id;
+			
+			if(rs.next()) {
+				MailSender sender = MailSender.getInstance();
+				id = rs.getString("id");
+				
+				sender.sendMail(email, "ScheduleApp에서 id를 알려드립니다." ,name+"님의 scheduleApp id는 ["+id+"]입니다.");
+			}
+			else {
+				code = NO_DATA;
+			}
+		}catch(Exception e) {
+			code = ERR;
+			System.out.println("FIND_ID_ERR: "+e.toString());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int findPw(String name, String email, String id) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select password from usertable where name=? and email=? and id=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, name);
+			pstmt.setString(2, email);
+			pstmt.setString(3, id);
+			
+			ResultSet rs = pstmt.executeQuery();
+			String pw;
+			
+			if(rs.next()) {
+				MailSender sender = MailSender.getInstance();
+				pw = rs.getString("password");
+				
+				sender.sendMail(email, "SchedleApp에서 비밀번호를 알려드립니다.", name+"님("+id+"의 비밀번호는 "+"["+pw+"] 입니다.");
+			}
+			else {
+				code = NO_DATA;
+			}
+		}catch(Exception e) {
+			code = ERR;
+			System.out.println("FIND_PW_ERR: "+e.toString());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
 	}
 }

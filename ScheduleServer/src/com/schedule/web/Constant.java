@@ -11,4 +11,8 @@ public class Constant {
     //login
     public static final int ERR_LOG_ID = 1;
     public static final int ERR_LOG_PW = 2;
+    
+    //find
+    public static final int NO_DATA = 2;
 }
+ 
