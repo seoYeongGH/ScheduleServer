@@ -63,10 +63,12 @@ public class UserServlet extends HttpServlet {
 			}
 			
 			else if("findId".equals(doing)) {
-				dao.findId(request.getParameter("name"), request.getParameter("email"));
+				int code = dao.findId(request.getParameter("name"), request.getParameter("email"));
+				out.print(code);
 			}
 			else if("findPw".equals(doing)) {
-				dao.findPw(request.getParameter("name"), request.getParameter("email"),request.getParameter("id"));
+				int code = dao.findPw(request.getParameter("name"), request.getParameter("email"),request.getParameter("id"));
+				out.print(code);
 			}
 			
 	}
