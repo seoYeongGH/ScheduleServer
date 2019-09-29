@@ -2,6 +2,7 @@ package com.schedule.web;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -39,7 +40,8 @@ public class UserServlet extends HttpServlet {
 		 PrintWriter out = response.getWriter();
 			
 			String doing = request.getParameter("doing");
-			System.out.println(doing);
+			System.out.println("Doing: "+doing);
+			
 			if("chkId".equals(doing)) {
 				if(dao.chkIdDup(request.getParameter("id")))
 					out.print(DUP_ID);
@@ -58,16 +60,26 @@ public class UserServlet extends HttpServlet {
 				}
 				else {
 					Integer code = dao.chkPw(id, request.getParameter("password")); 
+					if(code==SUCCESS)
+						session.setAttribute("id", id);
 					out.print(code);
 				}
 			}
-			
 			else if("findId".equals(doing)) {
-				dao.findId(request.getParameter("name"), request.getParameter("email"));
+				int code = dao.findId(request.getParameter("name"), request.getParameter("email"));
+				out.print(code);
 			}
 			else if("findPw".equals(doing)) {
-				dao.findPw(request.getParameter("name"), request.getParameter("email"),request.getParameter("id"));
+				int code = dao.findPw(request.getParameter("name"), request.getParameter("email"),request.getParameter("id"));
+				out.print(code);
 			}
+			else if("getInfo".equals(doing)) {
+				System.out.println("START GET");
+				//System.out.println("id: "+session.getAttribute("id"));
+				//HashMap hashInfo = dao.getInfo((String)session.getAttribute("id"));
+				//out.print(hashInfo);
+			}
+			
 			
 	}
 

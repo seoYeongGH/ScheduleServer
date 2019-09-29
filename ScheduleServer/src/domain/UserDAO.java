@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -24,7 +25,7 @@ public class UserDAO {
 	static {
 		try {
 			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-			System.out.println("드라이버 로드 성공");
+			System.out.println("�뱶�씪�씠踰� 濡쒕뱶 �꽦怨�");
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
@@ -207,7 +208,7 @@ public class UserDAO {
 				MailSender sender = MailSender.getInstance();
 				id = rs.getString("id");
 				
-				sender.sendMail(email, "ScheduleApp에서 id를 알려드립니다." ,name+"님의 scheduleApp id는 ["+id+"]입니다.");
+				sender.sendMail(email, "ScheduleApp�뿉�꽌 id瑜� �븣�젮�뱶由쎈땲�떎." ,name+"�떂�쓽 scheduleApp id�뒗 ["+id+"]�엯�땲�떎.");
 			}
 			else {
 				code = NO_DATA;
@@ -243,7 +244,7 @@ public class UserDAO {
 				MailSender sender = MailSender.getInstance();
 				pw = rs.getString("password");
 				
-				sender.sendMail(email, "SchedleApp에서 비밀번호를 알려드립니다.", name+"님("+id+"의 비밀번호는 "+"["+pw+"] 입니다.");
+				sender.sendMail(email, "SchedleApp�뿉�꽌 鍮꾨�踰덊샇瑜� �븣�젮�뱶由쎈땲�떎.", name+"�떂("+id+"�쓽 鍮꾨�踰덊샇�뒗 "+"["+pw+"] �엯�땲�떎.");
 			}
 			else {
 				code = NO_DATA;
@@ -256,5 +257,32 @@ public class UserDAO {
 		}
 		
 		return code;
+	}
+	
+	public HashMap getInfo(String id) {
+		Connection con = null;
+		HashMap<String,String> hashMap = new HashMap<String,String>();
+		
+		try {
+			String sql = "select name,email from usertable where id=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, id);
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next()) {
+				hashMap.put("name",rs.getString("name"));
+				hashMap.put("email", rs.getString("email"));
+			}
+			else {
+				hashMap.put("err","null");
+			}
+		}catch(Exception e) {
+			System.out.println("GET_INFO_ERR: "+e.toString());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return hashMap;
 	}
 }
