@@ -2,6 +2,7 @@ package com.schedule.web;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -33,13 +34,14 @@ public class UserServlet extends HttpServlet {
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		HttpSession session= request.getSession();
+		HttpSession session= request.getSession(true);
 		
 		dao = new UserDAO();
 		 PrintWriter out = response.getWriter();
 			
 			String doing = request.getParameter("doing");
-			System.out.println(doing);
+			System.out.println("Doing: "+doing);
+			
 			if("chkId".equals(doing)) {
 				if(dao.chkIdDup(request.getParameter("id")))
 					out.print(DUP_ID);
@@ -58,10 +60,14 @@ public class UserServlet extends HttpServlet {
 				}
 				else {
 					Integer code = dao.chkPw(id, request.getParameter("password")); 
+					if(code==SUCCESS) {
+						//session.setAttribute("id", id);
+						USession.getInstance().setId(id);
+					}
+					System.out.println("Login ID: "+USession.getInstance().getId());
 					out.print(code);
 				}
 			}
-			
 			else if("findId".equals(doing)) {
 				int code = dao.findId(request.getParameter("name"), request.getParameter("email"));
 				out.print(code);
@@ -69,7 +75,30 @@ public class UserServlet extends HttpServlet {
 			else if("findPw".equals(doing)) {
 				int code = dao.findPw(request.getParameter("name"), request.getParameter("email"),request.getParameter("id"));
 				out.print(code);
+
 			}
+			else if("getInfo".equals(doing)) {
+				HashMap<String,String> hashInfo = dao.getInfo(request.getParameter("id"));
+				System.out.println("Info: "+ hashInfo.get("name"));
+				out.print(hashInfo);
+			}
+			else if("changePw".equals(doing)) {
+				Integer code = dao.chkPw(USession.getInstance().getId(), request.getParameter("oldPw"));
+				if(code == SUCCESS) {
+					code = dao.changePw(USession.getInstance().getId(), request.getParameter("newPw"));
+				}
+				
+				out.print(code);
+			}
+			else if("withdraw".equals(doing)) {
+				Integer code = dao.chkPw(USession.getInstance().getId(), request.getParameter("password"));
+				if(code == SUCCESS) {
+					USession.getInstance().setId(null);
+					USession.getInstance().setIsLogin(false);
+				}
+				out.print(code);
+			}
+			
 			
 	}
 
