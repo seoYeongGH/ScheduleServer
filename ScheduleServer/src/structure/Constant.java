@@ -1,4 +1,4 @@
-package com.schedule.web;
+package structure;
 
 public class Constant {
 	public static final int SUCCESS = 200;
@@ -14,5 +14,9 @@ public class Constant {
     
     //find
     public static final int NO_DATA = 2;
+    
+    //scheduleDao
+    public static final int FOR_USER = 0;
+    public static final int FOR_GROUP = 1;
 }
  

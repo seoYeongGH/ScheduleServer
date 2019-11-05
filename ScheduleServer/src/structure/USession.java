@@ -1,4 +1,4 @@
-package com.schedule.web;
+package structure;
 
 public class USession {
 	private static USession instance;

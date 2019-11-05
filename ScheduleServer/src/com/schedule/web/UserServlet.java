@@ -1,5 +1,10 @@
 package com.schedule.web;
 
+import static structure.Constant.DUP_ID;
+import static structure.Constant.ERR_LOG_ID;
+import static structure.Constant.ERR_LOG_PW;
+import static structure.Constant.SUCCESS;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -11,12 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import static com.schedule.web.Constant.DUP_ID;
-import static com.schedule.web.Constant.SUCCESS;
-import static com.schedule.web.Constant.ERR_LOG_ID;
-import static com.schedule.web.Constant.ERR_LOG_PW;
-
 import domain.UserDAO;
+import structure.USession;
 
 
 /**
@@ -40,7 +41,6 @@ public class UserServlet extends HttpServlet {
 		 PrintWriter out = response.getWriter();
 			
 			String doing = request.getParameter("doing");
-			System.out.println("Doing: "+doing);
 			
 			if("chkId".equals(doing)) {
 				if(dao.chkIdDup(request.getParameter("id")))

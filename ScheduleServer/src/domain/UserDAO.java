@@ -1,5 +1,12 @@
 package domain;
 
+import static structure.Constant.DUP_ID;
+import static structure.Constant.DUP_USER;
+import static structure.Constant.ERR;
+import static structure.Constant.ERR_LOG_PW;
+import static structure.Constant.NO_DATA;
+import static structure.Constant.SUCCESS;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -12,13 +19,6 @@ import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
 import com.schedule.mail.MailSender;
-
-import static com.schedule.web.Constant.DUP_USER;
-import static com.schedule.web.Constant.DUP_ID;
-import static com.schedule.web.Constant.ERR;
-import static com.schedule.web.Constant.SUCCESS;
-import static com.schedule.web.Constant.ERR_LOG_PW;
-import static com.schedule.web.Constant.NO_DATA;
 
 
 public class UserDAO {
@@ -63,7 +63,7 @@ public class UserDAO {
 
 		try {
 			con = getConnection();
-			String sql = "select code from usertable where id=?";
+			String sql = "select friend from usertable where id=?";
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, id);
@@ -129,28 +129,16 @@ public class UserDAO {
 			if (chkIdDup(id))
 				return DUP_ID;
 
-			String sql = "select max(code) from usertable";
+			String sql = "insert into usertable values(?,?,?,?,?)";
+
 			PreparedStatement pstmt = con.prepareStatement(sql);
-
-			int code;
-
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next()) {
-				code = rs.getInt(1) + 1;
-			} else {
-				return ERR;
-			}
-
-			sql = "insert into usertable values(?,?,?,?,?,?)";
-
-			pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, code);
-			pstmt.setString(2, id);
-			pstmt.setString(3, pw);
-			pstmt.setString(4, name);
-			pstmt.setString(5, email);
-			pstmt.setInt(6, 0);
+			pstmt.setString(1, id);
+			pstmt.setString(2, pw);
+			pstmt.setString(3, name);
+			pstmt.setString(4, email);
+			pstmt.setInt(5, 0);
 			pstmt.executeQuery();
+
 
 		} catch (Exception e) {
 			System.out.println("INSERT_USER_EXP: " + e.getMessage());
@@ -169,7 +157,7 @@ public class UserDAO {
 		try {
 			con = getConnection();
 
-			String sql = "select code from usertable where email=? and name=?";
+			String sql = "select friend from usertable where email=? and name=?";
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, name);
