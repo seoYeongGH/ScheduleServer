@@ -9,8 +9,8 @@ import org.json.JSONObject;
 import com.google.gson.annotations.SerializedName;
 
 public class ScheduleObject extends JSONObject{
-	@SerializedName("date")
-	LocalDate date;
+	@SerializedName("scheduledate")
+	String scheduledate;
 	
 	@SerializedName("startTimes")
     ArrayList<String> startTimes;
@@ -23,15 +23,8 @@ public class ScheduleObject extends JSONObject{
 
     public ScheduleObject(){}
 
-    public ScheduleObject(LocalDate date,  ArrayList<String> startTimes,  ArrayList<String> endTimes,  ArrayList<String> schedules) {
-        this.date = date;
-        this.startTimes = startTimes;
-        this.endTimes = endTimes;
-        this.schedules = schedules;
-    }
-
-    public LocalDate getDate() {
-        return date;
+    public String getDate() {
+        return scheduledate;
     }
 
     public  ArrayList<String> getStartTime() {
@@ -46,8 +39,8 @@ public class ScheduleObject extends JSONObject{
         return schedules;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void setDate(String date) {
+        this.scheduledate = date;
     }
 
     public void setStartTime( ArrayList<String> startTime) {
@@ -62,17 +55,4 @@ public class ScheduleObject extends JSONObject{
         this.schedules = schedule;
     }
 
-    public JSONObject getJSonObject(){
-        JSONObject jsonObj = new JSONObject();
-        try {
-			jsonObj.put("date", date);
-			jsonObj.put("startTimes", startTimes);
-			jsonObj.put("endTimes", endTimes);
-			jsonObj.put("schedule", schedules);
-		} catch (JSONException e) {
-			System.out.println("JSON_PARSE_EXP: "+e.toString());
-		}
-        
-        return jsonObj;
-    }
 }

@@ -2,7 +2,9 @@ package com.schedule.web;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -47,8 +49,9 @@ public class ScheduleServlet extends HttpServlet {
 			//out.print(code);
 		}
 		else if("initSchedule".equals(doing)) {
-			JSONArray jsonArr = dao.getAllSch();
-			out.print(jsonArr);
+			List<ScheduleObject> listObj = dao.getAllSch();
+			
+			out.print(listObj);
 		}
 	}
 

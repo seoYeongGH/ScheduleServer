@@ -9,6 +9,7 @@ import java.sql.Types;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.naming.Context;
@@ -16,6 +17,8 @@ import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import structure.ScheduleObject;
 import structure.USession;
@@ -86,14 +89,15 @@ public class ScheduleDAO {
 		return code;
 	}                                                                                             
 	
-	public JSONArray getAllSch() {
+	public List getAllSch() {
 		Connection con  = null;
-		JSONArray jsonArr = new JSONArray();
+		//JSONArray listObj = new JSONArray();
+		ArrayList<ScheduleObject> listObj = new ArrayList<ScheduleObject>();
 		
 		try {
 			con = getConnection();
 			String beforeDate = null;
-			
+			String currentDate = null;
 			String sql = "select scheduledate,starttime,endtime,schedule from scheduletable where userid=? order by scheduledate,starttime";
 			
 			PreparedStatement pstmt = con.prepareStatement(sql);
@@ -102,56 +106,68 @@ public class ScheduleDAO {
 			ResultSet rs = pstmt.executeQuery();
 			
 			ScheduleObject schObj = new ScheduleObject();
+			//JSONObject schObj = new JSONObject();
 			ArrayList<String> startTimes = new ArrayList<String>();
 			ArrayList<String> endTimes = new ArrayList<String>();
 			ArrayList<String> schedules = new ArrayList<String>();
 			
-			DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-d").withLocale(Locale.ENGLISH);
 			while(rs.next()) {				
-				String currentDate = rs.getString("scheduledate");
+				currentDate = rs.getString("scheduledate");
 				
 				if(!currentDate.equals(beforeDate)) {
 					if(beforeDate != null) {
+						schObj.put("scheduledate",beforeDate);
 						schObj.put("startTimes", startTimes);
 						schObj.put("endtimes", endTimes);
 						schObj.put("schedules", schedules);
-
-						jsonArr.put(schObj);
-					
+						
+						/*
+						schObj.setDate(beforeDate);
+						schObj.setStartTime(startTimes);
+						schObj.setEndTime(endTimes);
+						schObj.setSchedule(schedules);
+						*/
+						listObj.add(schObj);
+						
+						
+						//listObj.put(schObj);
+						
 						startTimes.clear();
 						endTimes.clear();
 						schedules.clear();
 					
 						schObj = new ScheduleObject();
+						
 					}
-					
-					schObj.put("scheduledate",LocalDate.parse(rs.getString("scheduledate"),format));
-					
+						beforeDate = currentDate;
 				}
 				
 				startTimes.add(rs.getString("starttime"));
 				endTimes.add(rs.getString("endtime"));
 				schedules.add(rs.getString("schedule"));
 				}
-			schObj.put("startTimes", startTimes);
-			schObj.put("endtimes", endTimes);
-			schObj.put("schedules", schedules);
+			
+			if(beforeDate.equals(currentDate)) {
+				schObj.put("scheduledate",currentDate);
+				schObj.put("startTimes", startTimes);
+				schObj.put("endtimes", endTimes);
+				schObj.put("schedules", schedules);
+				
+			}
 
-			jsonArr.put(schObj);
-		
+			//jsonArr.put(schObj);
+			listObj.add(schObj);
+			
 			startTimes.clear();
 			endTimes.clear();
 			schedules.clear();
 		
-			schObj = new ScheduleObject();
 		}catch(Exception e) {
 			System.out.println("GET_ALL_DATA_EXP: "+e.toString());
 		}finally {
 			closeConnection(con);
 		}
 
-		System.out.println("JSON CHK:"+jsonArr.toString());
-	
-		return jsonArr;
+		return listObj;
 	}
 }
