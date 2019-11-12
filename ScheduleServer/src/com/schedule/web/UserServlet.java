@@ -28,7 +28,8 @@ public class UserServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private UserDAO dao;
 	
-    public UserServlet() {}
+    public UserServlet() {
+    }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		

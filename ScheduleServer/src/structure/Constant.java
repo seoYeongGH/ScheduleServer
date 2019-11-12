@@ -15,8 +15,17 @@ public class Constant {
     //find
     public static final int NO_DATA = 2;
     
+    //scheduleServlet
+    public static final String FLAG_ADD = "addSchedule";
+    public static final String FLAG_MODIFY = "modifySchedule";
+
     //scheduleDao
     public static final int FOR_USER = 0;
     public static final int FOR_GROUP = 1;
+    
+    //ScheduleModify
+    public static final int ADD_SUCCESS = 0;
+    public static final int MOD_SUCCESS = 1;
+    public static final int DELETE_SUCCESS = 2;
 }
  

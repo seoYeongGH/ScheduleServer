@@ -18,9 +18,12 @@ import org.json.JSONException;
 
 import domain.ScheduleDAO;
 import structure.ScheduleObject;
+import structure.USession;
 
 import static structure.Constant.FOR_USER;
-
+import static structure.Constant.FLAG_ADD;
+import static structure.Constant.FLAG_MODIFY;
+/**
 /**
  * Servlet implementation class ScheduleServlet
  */
@@ -42,16 +45,38 @@ public class ScheduleServlet extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		
 		String doing = request.getParameter("doing");
+		System.out.println("DOING: "+doing);
 		
-		if("addSchedule".equals(doing)) {
-			Integer code = dao.addSchedule(request.getParameter("date"),request.getParameter("startTime"),request.getParameter("endTime"),request.getParameter("schedule"));
+		if(FLAG_ADD.equals(doing)) {
+			int code = dao.addSchedule(request.getParameter("date"),request.getParameter("startTime"),request.getParameter("endTime"),request.getParameter("schedule"));
 			
-			//out.print(code);
+			out.print(code);
+		}
+		else if(FLAG_MODIFY.equals(doing)) {
+			String[] datas = new String[8];
+
+			String[] strTimes = request.getParameter("time").split("~");
+			
+			datas[0] = request.getParameter("aftSchedule");
+			datas[1] = request.getParameter("aftStartTime");
+			datas[2] = request.getParameter("aftEndTime");
+			datas[3] = USession.getInstance().getId();
+			datas[4] = request.getParameter("date");
+			datas[5] = strTimes[0];
+			datas[6] = strTimes[1];
+			datas[7] = request.getParameter("schedule");
+			
+			int code = dao.modifySchedule(datas);
+			out.print(code);
 		}
 		else if("initSchedule".equals(doing)) {
 			List<ScheduleObject> listObj = dao.getAllSch();
-			
 			out.print(listObj);
+		}
+		else if("deleteSchedule".equals(doing)) {
+			String[] strTimes = request.getParameter("time").split("~");
+			int code = dao.deleteSchedule(request.getParameter("schedule"), request.getParameter("scheduleDate"),strTimes[0],strTimes[1]);
+			out.print(code);
 		}
 	}
 
