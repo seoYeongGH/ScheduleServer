@@ -12,20 +12,26 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import org.json.JSONException;
+
 import com.schedule.mail.MailSender;
 
+import structure.FriendObject;
+import structure.USession;
 
 public class UserDAO {
 	static {
 		try {
 			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-			System.out.println("�뱶�씪�씠踰� 濡쒕뱶 �꽦怨�");
+			System.out.println("Connect");
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
@@ -296,6 +302,111 @@ public class UserDAO {
 		}catch(Exception e) {
 			System.out.println("CHANGE_PW_ERR: "+e.toString());
 			code = ERR;
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int chkFrdExist(String frdName, String frdId) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select friend from usertable where id=? and name=?";
+
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, frdId);
+			pstmt.setString(2, frdName);
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(!rs.next()) {
+				code = NO_DATA;
+			}
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("CHK_FRD_EXIST_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		return code;
+	}
+	
+	public ArrayList<FriendObject> getFriends() {
+		Connection con = null;
+		ArrayList<FriendObject> list = new ArrayList<FriendObject>();
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select friendid, friendname from friendtable where userid=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				FriendObject obj = new FriendObject();
+				
+				obj.put("name",rs.getString("friendname"));
+				obj.put("id", rs.getString("friendid"));
+				list.add(obj);
+			}
+		}catch(Exception e) {
+			System.out.println("GET_FRIEND_EXP: "+e.getMessage());
+			e.printStackTrace();
+		}finally {
+			closeConnection(con);
+		}
+		return list;
+	}
+	
+	public int addFriend(String name, String id) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "insert into friendtable values(?,?,?)";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			pstmt.setString(2, id);
+			pstmt.setString(3, name);
+			
+			pstmt.executeQuery();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("ADD_FRIEND_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int deleteFriend(String name, String id) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "delete from friendtable where userid=? and friendid=? and friendname=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1,USession.getInstance().getId());
+			pstmt.setString(2, id);
+			pstmt.setString(3, name);
+			
+			pstmt.executeQuery();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("DELETE_FRIEND_EXP: "+e.getMessage());
 		}finally {
 			closeConnection(con);
 		}

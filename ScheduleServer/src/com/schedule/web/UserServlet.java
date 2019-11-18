@@ -7,6 +7,7 @@ import static structure.Constant.SUCCESS;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.servlet.ServletException;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import domain.UserDAO;
+import structure.FriendObject;
 import structure.USession;
 
 
@@ -37,6 +39,8 @@ public class UserServlet extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session= request.getSession(true);
+		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
 		
 		dao = new UserDAO();
 		 PrintWriter out = response.getWriter();
@@ -99,7 +103,19 @@ public class UserServlet extends HttpServlet {
 				}
 				out.print(code);
 			}
-			
+			else if("findFriend".equals(doing)) {
+				int code = dao.chkFrdExist(request.getParameter("name"), request.getParameter("id"));
+				out.print(code);
+			}
+			else if("getFriends".equals(doing)) {
+				out.print(dao.getFriends());
+			}
+			else if("addFriend".equals(doing)) {
+				out.print(dao.addFriend(request.getParameter("name"),request.getParameter("id")));
+			}
+			else if("deleteFriend".equals(doing)) {
+				out.print(dao.deleteFriend(request.getParameter("name"), request.getParameter("id")));
+			}
 			
 	}
 

@@ -41,6 +41,8 @@ public class ScheduleServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+		
 		ScheduleDAO dao = new ScheduleDAO();
 		PrintWriter out = response.getWriter();
 		
