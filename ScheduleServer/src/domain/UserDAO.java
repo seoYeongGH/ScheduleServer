@@ -6,6 +6,8 @@ import static structure.Constant.ERR;
 import static structure.Constant.ERR_LOG_PW;
 import static structure.Constant.NO_DATA;
 import static structure.Constant.SUCCESS;
+import static structure.Constant.EXIST_INVITE;
+import static structure.Constant.NO_EXIST_INVITE;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -25,6 +27,7 @@ import org.json.JSONException;
 import com.schedule.mail.MailSender;
 
 import structure.FriendObject;
+import structure.InviteObject;
 import structure.USession;
 
 public class UserDAO {
@@ -273,9 +276,20 @@ public class UserDAO {
 				hashMap.put("name",rs.getString("name"));
 				hashMap.put("email", rs.getString("email"));
 			}
-			else {
-				hashMap.put("err","null");
+
+			sql = "select count(*) from invitetable where userid=?";
+			
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				if(rs.getInt(1)>0)
+					hashMap.put("invite","exist");
+				else
+					hashMap.put("invite", "noExist");
 			}
+			
 		}catch(Exception e) {
 			System.out.println("GET_INFO_ERR: "+e.toString());
 		}finally {
@@ -413,4 +427,155 @@ public class UserDAO {
 		
 		return code;
 	}
+	
+	public int addMember(int groupNum) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "insert into grouptable values(?,?)";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
+			pstmt.setString(2, USession.getInstance().getId());
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("ADD_MEMBER_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int sendInvite(int groupNum,String[] friends) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "insert into invitetable values(?,?)";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
+		
+			int size = friends.length;
+			for(int i=0; i<size; i++) {
+				pstmt.setString(2,friends[i]);
+				pstmt.execute();
+			}
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("SEND_INVITE_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	public int createGroup(String name, String[] friends) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select count(*) from groupproto";
+			int groupNum = -1;
+
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			ResultSet rs = pstmt.executeQuery();
+			
+			if(rs.next())
+				groupNum = rs.getInt(1)+1;
+			else {
+				code = ERR;
+			}
+			
+			String id = USession.getInstance().getId();
+			sql = "insert into groupproto values(?,?,?)";
+			
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
+			pstmt.setString(2,name);
+			pstmt.setString(3, id);
+			pstmt.executeQuery();
+			
+			code = addMember(groupNum);
+			
+			if(code == SUCCESS) 
+				code = sendInvite(groupNum,friends);
+			
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("CREATE_GROUP_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+
+	
+	public ArrayList<InviteObject> getInvites(){
+		Connection con = null;
+		ArrayList<InviteObject> invites = new ArrayList<InviteObject>();
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select b.groupnum,b.groupname,b.managerid "
+					+ "from invitetable a join groupproto b on a.groupnum = b.groupnum where userid=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				InviteObject obj = new InviteObject();
+				
+				obj.put("groupNum",rs.getInt("groupnum"));
+				obj.put("groupName",rs.getString("groupname"));
+				obj.put("managerId",rs.getString("managerid"));
+				invites.add(obj);
+			}
+			System.out.println("OBJ"+invites.size());
+		}catch(Exception e) {
+			System.out.println("GET_INVITE_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return invites;
+	}
+	
+	public int deleteInvite(int groupNum) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "delete from invitetable where groupnum=? and userid=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
+			pstmt.setString(2, USession.getInstance().getId());
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("DEL_INVITE_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
 }

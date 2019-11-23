@@ -19,6 +19,7 @@ import javax.servlet.http.HttpSession;
 
 import domain.UserDAO;
 import structure.FriendObject;
+import structure.InviteObject;
 import structure.USession;
 
 
@@ -115,6 +116,27 @@ public class UserServlet extends HttpServlet {
 			}
 			else if("deleteFriend".equals(doing)) {
 				out.print(dao.deleteFriend(request.getParameter("name"), request.getParameter("id")));
+			}
+			else if("sendInvite".equals(doing)) {
+				String ids = request.getParameter("ids");
+				ids = ids.substring(1,ids.length()-1);
+				
+				String[] friendIds = ids.split("\\)\\(");
+				
+				out.print(dao.createGroup(request.getParameter("name"), friendIds));
+			}
+			else if("getInvites".equals(doing)) {
+				out.print(dao.getInvites());
+			}
+			else if("acceptInvite".equals(doing)) {
+				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+				int code = dao.addMember(groupNum);
+				
+				if(code == SUCCESS)
+					out.print(dao.deleteInvite(groupNum));
+			}
+			else if("denyInvite".equals(doing)) {
+				out.print(dao.deleteInvite(Integer.parseInt(request.getParameter("groupNum"))));
 			}
 			
 	}

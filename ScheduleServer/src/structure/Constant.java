@@ -2,7 +2,7 @@ package structure;
 
 public class Constant {
 	public static final int SUCCESS = 200;
-	public static final int ERR = 999;
+	public static final int ERR = -1;
 	
 	//join
     public static final int DUP_ID = 2;
@@ -27,5 +27,9 @@ public class Constant {
     public static final int ADD_SUCCESS = 0;
     public static final int MOD_SUCCESS = 1;
     public static final int DELETE_SUCCESS = 2;
+    
+    //social
+    public static final int EXIST_INVITE = 0;
+    public static final int NO_EXIST_INVITE = 1;
 }
  
