@@ -111,13 +111,20 @@ public class UserServlet extends HttpServlet {
 			else if("getFriends".equals(doing)) {
 				out.print(dao.getFriends());
 			}
+			else if("getGroups".equals(doing)) {
+				out.print(dao.getGroups());
+			}
 			else if("addFriend".equals(doing)) {
 				out.print(dao.addFriend(request.getParameter("name"),request.getParameter("id")));
 			}
 			else if("deleteFriend".equals(doing)) {
 				out.print(dao.deleteFriend(request.getParameter("name"), request.getParameter("id")));
 			}
-			else if("sendInvite".equals(doing)) {
+			else if("deleteGroup".equals(doing)) {
+				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+				out.print(dao.deleteGroup(groupNum));
+			}
+			else if("createGroup".equals(doing)) {
 				String ids = request.getParameter("ids");
 				ids = ids.substring(1,ids.length()-1);
 				
@@ -137,6 +144,39 @@ public class UserServlet extends HttpServlet {
 			}
 			else if("denyInvite".equals(doing)) {
 				out.print(dao.deleteInvite(Integer.parseInt(request.getParameter("groupNum"))));
+			}
+			else if("getMembers".equals(doing)) {
+				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+				out.print(dao.getMembers(groupNum));
+			}
+			else if("sendInvite".equals(doing)) {
+				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+				String ids = request.getParameter("ids");
+				ids = ids.substring(1,ids.length()-1);
+				
+				String[] friendIds = ids.split("\\)\\(");
+				
+				out.print(dao.sendInvite(groupNum, friendIds));
+			}
+			else if("withdrawMember".equals(doing)) {
+				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+				String ids = request.getParameter("ids");
+				ids = ids.substring(1,ids.length()-1);
+				
+				String[] friendIds = ids.split("\\)\\(");
+				out.print(dao.withdrawMember(groupNum, friendIds));
+				
+			}
+			else if("getGroupNums".equals(doing)) {
+				out.print(dao.getGroupNums());
+			}
+			else if("connectGroup".equals(doing)) {
+				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+				out.print(dao.connectGroup(groupNum));
+			}
+			else if("disconnectGroup".equals(doing)) {
+				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+				out.print(dao.disConnectGroup(groupNum));
 			}
 			
 	}

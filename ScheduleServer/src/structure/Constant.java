@@ -18,6 +18,7 @@ public class Constant {
     //scheduleServlet
     public static final String FLAG_ADD = "addSchedule";
     public static final String FLAG_MODIFY = "modifySchedule";
+    public static final String FLAG_ADD_GROUP = "addGroupSch";
 
     //scheduleDao
     public static final int FOR_USER = 0;

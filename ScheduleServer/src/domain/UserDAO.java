@@ -27,6 +27,7 @@ import org.json.JSONException;
 import com.schedule.mail.MailSender;
 
 import structure.FriendObject;
+import structure.GroupObject;
 import structure.InviteObject;
 import structure.USession;
 
@@ -378,6 +379,47 @@ public class UserDAO {
 		return list;
 	}
 	
+	public HashMap getGroups(){
+		Connection con = null;
+		HashMap<String,ArrayList<GroupObject>> groups = new HashMap();
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select b.groupnum,b.groupname,b.managerid "
+					+ "from grouptable a join groupproto b on a.groupnum = b.groupnum where memberid=?"
+					+ "order by b.groupname";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			
+			ArrayList<GroupObject> isManager = new ArrayList<GroupObject>();
+			ArrayList<GroupObject> notManager = new ArrayList<GroupObject>();
+			String id = USession.getInstance().getId();
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				GroupObject obj = new GroupObject();
+				obj.put("groupNum",rs.getInt("groupnum"));
+				obj.put("groupName",rs.getString("groupname"));
+				
+				if(id.equals(rs.getString("managerid")))
+					isManager.add(obj);
+				else
+					notManager.add(obj);
+			}
+			
+			groups.put("isManager",isManager);
+			groups.put("notManager",notManager);
+		}catch(Exception e) {
+			System.out.println("GET_GROUP_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return groups;
+	}
+	
 	public int addFriend(String name, String id) {
 		Connection con = null;
 		int code = SUCCESS;
@@ -421,6 +463,52 @@ public class UserDAO {
 		}catch(SQLException e) {
 			code = ERR;
 			System.out.println("DELETE_FRIEND_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int deleteGroup(int groupNum) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "delete from grouptable where groupnum=? and memberid=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
+			pstmt.setString(2, USession.getInstance().getId());
+			
+			pstmt.execute();
+			
+			sql = "select count(*) from grouptable where groupnum=?";
+			
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next()) {
+				if(rs.getInt(1)<=0) {
+					sql = "delete from groupproto where groupnum=?";
+					
+					pstmt = con.prepareStatement(sql);
+					pstmt.setInt(1, groupNum);
+					pstmt.execute();
+					
+					sql = "update groupproto set groupnum=(groupnum-1) where groupnum>?";
+					
+					pstmt = con.prepareStatement(sql);
+					pstmt.setInt(1, groupNum);
+					pstmt.execute();
+				}
+			}
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("DEL_GROUP_EXP: "+e.getMessage());
 		}finally {
 			closeConnection(con);
 		}
@@ -545,7 +633,6 @@ public class UserDAO {
 				obj.put("managerId",rs.getString("managerid"));
 				invites.add(obj);
 			}
-			System.out.println("OBJ"+invites.size());
 		}catch(Exception e) {
 			System.out.println("GET_INVITE_EXP: "+e.getMessage());
 		}finally {
@@ -578,4 +665,132 @@ public class UserDAO {
 		return code;
 	}
 	
+	public ArrayList<FriendObject> getMembers(int groupNum){
+		Connection con = null;
+		ArrayList<FriendObject> friends = new ArrayList<FriendObject>();
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select b.name, b.id from grouptable a join usertable b "
+					+ "on a.memberid = b.id where groupnum=? order by b.name";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				FriendObject obj = new FriendObject();
+				obj.put("name", rs.getString("name"));
+				obj.put("id", rs.getString("id"));
+				
+				friends.add(obj);
+			}
+			
+		}catch(Exception e) {
+			System.out.println("GET_NAMES_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return friends;
+	}
+	
+	public int withdrawMember(int groupNum, String[] ids) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "delete from grouptable where groupnum=? and memberid=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
+			
+			int idSize = ids.length;
+			for(int i=0; i<idSize; i++) {
+				pstmt.setString(2, ids[i]);
+				pstmt.execute();
+			}
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("WITHDRAW_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public ArrayList<Integer> getGroupNums(){
+		Connection con = null;
+		ArrayList<Integer> groupNums = new ArrayList<Integer>();
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select groupnum from linktable where userid=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				groupNums.add(rs.getInt(1));
+			}
+		}catch(SQLException e) {
+			System.out.println("GET_GPNUM_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return groupNums;
+		
+}
+	public int connectGroup(int groupNum) {
+		Connection con  = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "insert into linktable values(?,?)";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1,groupNum);
+			pstmt.setString(2,USession.getInstance().getId());
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("CONNECT_GROUP_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int disConnectGroup(int groupNum) {
+		Connection con  = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "delete from linktable where groupNum=? and userid=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1,groupNum);
+			pstmt.setString(2,USession.getInstance().getId());
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("DISCON_GROUP_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
 }

@@ -64,7 +64,7 @@ public class ScheduleDAO {
 		return;
 	}
 	
-	public int addSchedule(String date,String startTime, String endTime, String schedule) {
+	public int addSchedule(int groupNum, String date,String startTime, String endTime, String schedule) {
 		Connection con = null;
 		int code = ADD_SUCCESS;
 		
@@ -74,8 +74,14 @@ public class ScheduleDAO {
 			String sql = "insert into scheduletable values(?,?,?,?,?,?)";
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			
-			pstmt.setString(1, USession.getInstance().getId());
-			pstmt.setNull(2, Types.INTEGER);
+			if(groupNum == -1) {
+				pstmt.setString(1, USession.getInstance().getId());
+				pstmt.setNull(2, Types.INTEGER);
+			}
+			else {
+				pstmt.setNull(1, Types.VARCHAR);
+				pstmt.setInt(2, groupNum);	
+			}
 			pstmt.setString(3, date);
 			pstmt.setString(4, startTime);
 			pstmt.setString(5, endTime);
@@ -92,6 +98,7 @@ public class ScheduleDAO {
 		return code;
 	}                                                                                             
 	
+
 	public List getAllSch() {
 		Connection con  = null;
 		ArrayList<ScheduleObject> listObj = new ArrayList<ScheduleObject>();
@@ -100,10 +107,83 @@ public class ScheduleDAO {
 			con = getConnection();
 			String beforeDate = null;
 			String currentDate = null;
-			String sql = "select scheduledate,starttime,endtime,schedule from scheduletable where userid=? order by scheduledate,starttime";
+			String sql = "select a.scheduledate,a.starttime,a.endtime,a.schedule from scheduletable a left outer join linktable b "
+					+ "on a.groupnum = b.groupnum where b.userid=? or a.userid=? order by a.scheduledate,a.starttime";
 			
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, USession.getInstance().getId());
+			pstmt.setString(2, USession.getInstance().getId());
+			
+			ResultSet rs = pstmt.executeQuery();
+			
+			ScheduleObject schObj = new ScheduleObject();
+			ArrayList<String> startTimes = new ArrayList<String>();
+			ArrayList<String> endTimes = new ArrayList<String>();
+			ArrayList<String> schedules = new ArrayList<String>();
+			
+			while(rs.next()) {				
+				currentDate = rs.getString("scheduledate");
+				
+				if(!currentDate.equals(beforeDate)) {
+					if(beforeDate != null) {
+						schObj.put("scheduledate",beforeDate);
+						schObj.put("startTimes", startTimes);
+						schObj.put("endTimes", endTimes);
+						schObj.put("schedules", schedules);
+						
+						listObj.add(schObj);
+						
+						
+						startTimes.clear();
+						endTimes.clear();
+						schedules.clear();
+					
+						schObj = new ScheduleObject();
+						
+					}
+						beforeDate = currentDate;
+				}
+				
+				startTimes.add(rs.getString("starttime"));
+				endTimes.add(rs.getString("endtime"));
+				schedules.add(rs.getString("schedule"));
+				}
+			
+			if(beforeDate.equals(currentDate)) {
+				schObj.put("scheduledate",currentDate);
+				schObj.put("startTimes", startTimes);
+				schObj.put("endTimes", endTimes);
+				schObj.put("schedules", schedules);
+			
+			}
+			listObj.add(schObj);
+			
+			startTimes.clear();
+			endTimes.clear();
+			schedules.clear();
+		
+		}catch(Exception e) {
+			System.out.println("GET_ALL_DATA_EXP: "+e.toString());
+		}finally {
+			closeConnection(con);
+		}
+		
+
+		return listObj;
+	}
+	
+	public List getGroupSch(int groupNum) {
+		Connection con  = null;
+		ArrayList<ScheduleObject> listObj = new ArrayList<ScheduleObject>();
+		
+		try {
+			con = getConnection();
+			String beforeDate = null;
+			String currentDate = null;
+			String sql = "select scheduledate,starttime,endtime,schedule from scheduletable where groupnum=? order by scheduledate,starttime";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, groupNum);
 			
 			ResultSet rs = pstmt.executeQuery();
 			

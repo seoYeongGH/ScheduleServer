@@ -22,11 +22,8 @@ import structure.USession;
 
 import static structure.Constant.FOR_USER;
 import static structure.Constant.FLAG_ADD;
+import static structure.Constant.FLAG_ADD_GROUP;
 import static structure.Constant.FLAG_MODIFY;
-/**
-/**
- * Servlet implementation class ScheduleServlet
- */
 @WebServlet("/sch.do")
 public class ScheduleServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -47,10 +44,10 @@ public class ScheduleServlet extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		
 		String doing = request.getParameter("doing");
-		System.out.println("DOING: "+doing);
 		
 		if(FLAG_ADD.equals(doing)) {
-			int code = dao.addSchedule(request.getParameter("date"),request.getParameter("startTime"),request.getParameter("endTime"),request.getParameter("schedule"));
+			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+			int code = dao.addSchedule(groupNum,request.getParameter("date"),request.getParameter("startTime"),request.getParameter("endTime"),request.getParameter("schedule"));
 			
 			out.print(code);
 		}
@@ -79,6 +76,10 @@ public class ScheduleServlet extends HttpServlet {
 			String[] strTimes = request.getParameter("time").split("~");
 			int code = dao.deleteSchedule(request.getParameter("schedule"), request.getParameter("scheduleDate"),strTimes[0],strTimes[1]);
 			out.print(code);
+		}
+		else if("getGpSchedule".equals(doing)) {
+			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+			out.print(dao.getGroupSch(groupNum));
 		}
 	}
 
