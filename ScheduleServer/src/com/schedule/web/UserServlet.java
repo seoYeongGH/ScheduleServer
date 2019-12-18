@@ -126,8 +126,9 @@ public class UserServlet extends HttpServlet {
 			}
 			else if("createGroup".equals(doing)) {
 				String ids = request.getParameter("ids");
-				ids = ids.substring(1,ids.length()-1);
 				
+				ids = ids.substring(1,ids.length()-1);
+				System.out.println("IDS: "+ids);
 				String[] friendIds = ids.split("\\)\\(");
 				
 				out.print(dao.createGroup(request.getParameter("name"), friendIds));
@@ -163,11 +164,12 @@ public class UserServlet extends HttpServlet {
 				String ids = request.getParameter("ids");
 				ids = ids.substring(1,ids.length()-1);
 				
-				String[] friendIds = ids.split("\\)\\(");
+				String[] 
+						friendIds = ids.split("\\)\\(");
 				out.print(dao.withdrawMember(groupNum, friendIds));
 				
 			}
-			else if("getGroupNums".equals(doing)) {
+			else if("getLinkGroups".equals(doing)) {
 				out.print(dao.getGroupNums());
 			}
 			else if("connectGroup".equals(doing)) {

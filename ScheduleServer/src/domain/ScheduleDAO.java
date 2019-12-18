@@ -28,6 +28,7 @@ import static structure.Constant.ERR;
 import static structure.Constant.ADD_SUCCESS;
 import static structure.Constant.MOD_SUCCESS;
 import static structure.Constant.DELETE_SUCCESS;
+import static structure.Constant.FOR_USER;
 
 public class ScheduleDAO {
 	static {
@@ -73,8 +74,9 @@ public class ScheduleDAO {
 			
 			String sql = "insert into scheduletable values(?,?,?,?,?,?)";
 			PreparedStatement pstmt = con.prepareStatement(sql);
-			
-			if(groupNum == -1) {
+
+			System.out.println("ADD "+groupNum);
+			if(groupNum == FOR_USER) {
 				pstmt.setString(1, USession.getInstance().getId());
 				pstmt.setNull(2, Types.INTEGER);
 			}
@@ -271,22 +273,37 @@ public class ScheduleDAO {
 		return code;
 	}
 	
-	public int modifySchedule(String[] datas) {
+	public int modifySchedule(int groupNum, String[] datas) {
 		Connection con = null;
 		int code = MOD_SUCCESS;
 		
 		try {
 			con = getConnection();
-			System.out.println("START");
 			
-			String sql = "update scheduletable set schedule=?, starttime=?, endtime=? "
+			PreparedStatement pstmt = null;
+			if(groupNum == FOR_USER) {
+				System.out.println("USER "+datas[3]);
+				String sql = "update scheduletable set schedule=?, starttime=?, endtime=? "
 					+ "where userid=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
 			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			for(int i=0; i<datas.length; i++) {
-				pstmt.setString(i+1, datas[i]);
+				 pstmt = con.prepareStatement(sql);
+				for(int i=0; i<datas.length; i++) {
+					pstmt.setString(i+1, datas[i]);
+				}
 			}
-			
+			else {
+				System.out.println("GROUP "+datas[3]);
+				String sql = "update scheduletable set schedule=?, starttime=?, endtime=? "
+						+ "where groupNum=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
+				
+					 pstmt = con.prepareStatement(sql);
+					for(int i=0; i<datas.length; i++) {
+						if(i!=3)
+							pstmt.setString(i+1, datas[i]);
+						else
+							pstmt.setInt(i+1, groupNum);
+					}
+			}
 			pstmt.executeQuery();
 		}catch(SQLException e) {
 			code = ERR;

@@ -32,5 +32,6 @@ public class Constant {
     //social
     public static final int EXIST_INVITE = 0;
     public static final int NO_EXIST_INVITE = 1;
+    
 }
  

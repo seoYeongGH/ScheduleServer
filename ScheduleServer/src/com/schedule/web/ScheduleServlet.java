@@ -24,6 +24,7 @@ import static structure.Constant.FOR_USER;
 import static structure.Constant.FLAG_ADD;
 import static structure.Constant.FLAG_ADD_GROUP;
 import static structure.Constant.FLAG_MODIFY;
+
 @WebServlet("/sch.do")
 public class ScheduleServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -39,6 +40,7 @@ public class ScheduleServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
 		
 		ScheduleDAO dao = new ScheduleDAO();
 		PrintWriter out = response.getWriter();
@@ -52,8 +54,9 @@ public class ScheduleServlet extends HttpServlet {
 			out.print(code);
 		}
 		else if(FLAG_MODIFY.equals(doing)) {
+			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
+			
 			String[] datas = new String[8];
-
 			String[] strTimes = request.getParameter("time").split("~");
 			
 			datas[0] = request.getParameter("aftSchedule");
@@ -65,7 +68,7 @@ public class ScheduleServlet extends HttpServlet {
 			datas[6] = strTimes[1];
 			datas[7] = request.getParameter("schedule");
 			
-			int code = dao.modifySchedule(datas);
+			int code = dao.modifySchedule(groupNum, datas);
 			out.print(code);
 		}
 		else if("initSchedule".equals(doing)) {
@@ -77,7 +80,7 @@ public class ScheduleServlet extends HttpServlet {
 			int code = dao.deleteSchedule(request.getParameter("schedule"), request.getParameter("scheduleDate"),strTimes[0],strTimes[1]);
 			out.print(code);
 		}
-		else if("getGpSchedule".equals(doing)) {
+		else if("getGroupSchedule".equals(doing)) {
 			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
 			out.print(dao.getGroupSch(groupNum));
 		}
