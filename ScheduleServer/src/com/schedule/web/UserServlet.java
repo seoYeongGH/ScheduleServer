@@ -74,14 +74,9 @@ public class UserServlet extends HttpServlet {
 					out.print(code);
 				}
 			}
-			else if("findId".equals(doing)) {
+			else if("findInfo".equals(doing)) {
 				int code = dao.findId(request.getParameter("name"), request.getParameter("email"));
 				out.print(code);
-			}
-			else if("findPw".equals(doing)) {
-				int code = dao.findPw(request.getParameter("name"), request.getParameter("email"),request.getParameter("id"));
-				out.print(code);
-
 			}
 			else if("getInfo".equals(doing)) {
 				HashMap<String,String> hashInfo = dao.getInfo(request.getParameter("id"));

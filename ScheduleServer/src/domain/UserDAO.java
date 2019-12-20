@@ -196,20 +196,23 @@ public class UserDAO {
 		try {
 			con = getConnection();
 			
-			String sql = "select id from usertable where name=? and email=?";
+			String sql = "select id,password from usertable where name=? and email=?";
 			
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, name);
 			pstmt.setString(2, email);
 			
 			ResultSet rs = pstmt.executeQuery();
+			
 			String id;
+			String pw;
 			
 			if(rs.next()) {
 				MailSender sender = MailSender.getInstance();
 				id = rs.getString("id");
-				
-				sender.sendMail(email, "ScheduleApp�뿉�꽌 id瑜� �븣�젮�뱶由쎈땲�떎." ,name+"�떂�쓽 scheduleApp id�뒗 ["+id+"]�엯�땲�떎.");
+				pw = rs.getString("password");
+				sender.sendMail(email, name+"님의 아이디는 [ "+id+" ], 비밀번호는 [ "+pw+" ]입니다.\n"
+						+"SCHappy에서 로그인 해주세요.");
 			}
 			else {
 				code = NO_DATA;
@@ -217,42 +220,6 @@ public class UserDAO {
 		}catch(Exception e) {
 			code = ERR;
 			System.out.println("FIND_ID_ERR: "+e.toString());
-		}finally {
-			closeConnection(con);
-		}
-		
-		return code;
-	}
-	
-	public int findPw(String name, String email, String id) {
-		Connection con = null;
-		int code = SUCCESS;
-		
-		try {
-			con = getConnection();
-			
-			String sql = "select password from usertable where name=? and email=? and id=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, name);
-			pstmt.setString(2, email);
-			pstmt.setString(3, id);
-			
-			ResultSet rs = pstmt.executeQuery();
-			String pw;
-			
-			if(rs.next()) {
-				MailSender sender = MailSender.getInstance();
-				pw = rs.getString("password");
-				
-				sender.sendMail(email, "SchedleApp�뿉�꽌 鍮꾨�踰덊샇瑜� �븣�젮�뱶由쎈땲�떎.", name+"�떂("+id+"�쓽 鍮꾨�踰덊샇�뒗 "+"["+pw+"] �엯�땲�떎.");
-			}
-			else {
-				code = NO_DATA;
-			}
-		}catch(Exception e) {
-			code = ERR;
-			System.out.println("FIND_PW_ERR: "+e.toString());
 		}finally {
 			closeConnection(con);
 		}

@@ -25,8 +25,8 @@ public class MailSender{
 		prop.put("mail.smtp.ssl.trust", "smtp.naver.com");
 		
 		Session session = Session.getDefaultInstance(prop, new javax.mail.Authenticator() {
-			String id = "Naver Id";
-			String pw = "Naver Password";
+			String id = "syho252";
+			String pw = "hong107!S2";
 			
 			protected PasswordAuthentication getPasswordAuthentication() {
 				return new PasswordAuthentication(id,pw);
@@ -37,7 +37,7 @@ public class MailSender{
 		
 		mimeMessage = new MimeMessage(session);
 		try {
-			mimeMessage.setFrom(new InternetAddress("Naver Email"));
+			mimeMessage.setFrom(new InternetAddress("syho252@naver.com"));
 		} catch (MessagingException e) {
 			System.out.println("SEND MAIL CREATE ERR: "+e.toString());
 		}
@@ -50,12 +50,12 @@ public class MailSender{
 		return instance;
 	}
 	
-	public boolean sendMail(String recipient, String subject, String text) {
+	public boolean sendMail(String recipient, String text) {
 		boolean flag = true;
 		
 		try {
 			mimeMessage.setRecipient(Message.RecipientType.TO,new InternetAddress(recipient));
-			mimeMessage.setSubject(subject);
+			mimeMessage.setSubject("From. SCHappy");
 			mimeMessage.setText(text);
 			
 			Transport.send(mimeMessage);
