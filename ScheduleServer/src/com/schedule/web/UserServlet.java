@@ -4,6 +4,7 @@ import static structure.Constant.DUP_ID;
 import static structure.Constant.ERR_LOG_ID;
 import static structure.Constant.ERR_LOG_PW;
 import static structure.Constant.SUCCESS;
+import static structure.Constant.ERR;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -79,20 +80,26 @@ public class UserServlet extends HttpServlet {
 				out.print(code);
 			}
 			else if("getInfo".equals(doing)) {
-				HashMap<String,String> hashInfo = dao.getInfo(request.getParameter("id"));
-				System.out.println("Info: "+ hashInfo.get("name"));
+				HashMap<String,String> hashInfo = dao.getInfo();
 				out.print(hashInfo);
 			}
+			else if("getInviteExist".equals(doing)) {
+				System.out.println("START");
+				System.out.println("EXIST: "+dao.getInviteExist());
+				out.print(dao.getInviteExist());
+			}
+			else if("chkPw".equals(doing)) {
+				out.print(dao.chkPw(USession.getInstance().getId(), request.getParameter("password")));
+			}
 			else if("changePw".equals(doing)) {
-				Integer code = dao.chkPw(USession.getInstance().getId(), request.getParameter("oldPw"));
-				if(code == SUCCESS) {
-					code = dao.changePw(USession.getInstance().getId(), request.getParameter("newPw"));
-				}
-				
-				out.print(code);
+				out.print(dao.changePw(USession.getInstance().getId(), request.getParameter("newPw")));
+			}
+			else if("changeEmail".equals(doing)) {
+				out.print(dao.changeEmail(request.getParameter("email")));
 			}
 			else if("withdraw".equals(doing)) {
-				Integer code = dao.chkPw(USession.getInstance().getId(), request.getParameter("password"));
+				int code = dao.withdraw();
+				
 				if(code == SUCCESS) {
 					USession.getInstance().setId(null);
 					USession.getInstance().setIsLogin(false);
@@ -120,13 +127,16 @@ public class UserServlet extends HttpServlet {
 				out.print(dao.deleteGroup(groupNum));
 			}
 			else if("createGroup".equals(doing)) {
+				int groupNum = dao.createGroup(request.getParameter("name"));
 				String ids = request.getParameter("ids");
 				
-				ids = ids.substring(1,ids.length()-1);
-				System.out.println("IDS: "+ids);
-				String[] friendIds = ids.split("\\)\\(");
+				if(ids.length()!=0) {
+					String[] friendIds = ids.split(",");
+					
+					groupNum = dao.sendInvite(groupNum, friendIds);
+				}
 				
-				out.print(dao.createGroup(request.getParameter("name"), friendIds));
+				out.println(groupNum);
 			}
 			else if("getInvites".equals(doing)) {
 				out.print(dao.getInvites());
@@ -148,9 +158,8 @@ public class UserServlet extends HttpServlet {
 			else if("sendInvite".equals(doing)) {
 				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
 				String ids = request.getParameter("ids");
-				ids = ids.substring(1,ids.length()-1);
 				
-				String[] friendIds = ids.split("\\)\\(");
+				String[] friendIds = ids.split(",");
 				
 				out.print(dao.sendInvite(groupNum, friendIds));
 			}
@@ -174,6 +183,8 @@ public class UserServlet extends HttpServlet {
 			else if("disconnectGroup".equals(doing)) {
 				int groupNum = Integer.parseInt(request.getParameter("groupNum"));
 				out.print(dao.disConnectGroup(groupNum));
+			}else if("getName".contentEquals(doing)) {
+				out.print(dao.getName());
 			}
 			
 	}

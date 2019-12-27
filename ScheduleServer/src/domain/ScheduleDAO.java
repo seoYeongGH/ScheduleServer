@@ -245,24 +245,39 @@ public class ScheduleDAO {
 		return listObj;
 	}
 	
-	public int deleteSchedule(String schedule, String date, String startTime, String endTime) {
+	public int deleteSchedule(int groupNum, String schedule, String date, String startTime, String endTime) {
 		Connection con = null;
 		int code = DELETE_SUCCESS;
 		try {
 			con = getConnection();
 			
+			PreparedStatement pstmt;
+			
+			if(groupNum == FOR_USER) {
 			String sql = "delete from scheduletable where "
 					+ "userid=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
 			
-			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt = con.prepareStatement(sql);
 			pstmt.setString(1,USession.getInstance().getId());
 			pstmt.setString(2, date);
 			pstmt.setString(3, startTime);
 			pstmt.setString(4, endTime);
 			pstmt.setString(5, schedule);
+			}
+			else {
+				String sql = "delete from scheduletable where "
+						+ "groupNum=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
+				
+				pstmt = con.prepareStatement(sql);
+				pstmt.setInt(1,groupNum);
+				pstmt.setString(2, date);
+				pstmt.setString(3, startTime);
+				pstmt.setString(4, endTime);
+				pstmt.setString(5, schedule);
+			}
 			
-			System.out.println(date+startTime+endTime+schedule);
 			pstmt.executeQuery();
+			
 		}catch(SQLException e) {
 			System.out.println("DELETE_SCHEDULE_EXP: "+e.getMessage());
 			code = ERR;
@@ -282,7 +297,6 @@ public class ScheduleDAO {
 			
 			PreparedStatement pstmt = null;
 			if(groupNum == FOR_USER) {
-				System.out.println("USER "+datas[3]);
 				String sql = "update scheduletable set schedule=?, starttime=?, endtime=? "
 					+ "where userid=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
 			
@@ -290,6 +304,7 @@ public class ScheduleDAO {
 				for(int i=0; i<datas.length; i++) {
 					pstmt.setString(i+1, datas[i]);
 				}
+				
 			}
 			else {
 				System.out.println("GROUP "+datas[3]);

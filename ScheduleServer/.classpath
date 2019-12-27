@@ -10,5 +10,6 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="C:/Users/seoyeong/Downloads/activation.jar/activation.jar"/>
+	<classpathentry kind="lib" path="org.eclipse.jdt.annotation_2.2.300.v20190328-1431.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

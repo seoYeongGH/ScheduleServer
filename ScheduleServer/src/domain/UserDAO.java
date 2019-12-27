@@ -22,6 +22,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.json.JSONException;
 
 import com.schedule.mail.MailSender;
@@ -100,8 +101,6 @@ public class UserDAO {
 		
 		try {
 			con = getConnection();
-			System.out.println("CHK ID: "+id);
-			System.out.println("CHK PW: "+pw);
 			
 			String sql = "select password from usertable where id=?";
 			
@@ -227,7 +226,7 @@ public class UserDAO {
 		return code;
 	}
 	
-	public HashMap getInfo(String id) {
+	public HashMap<String,String> getInfo() {
 		Connection con = null;
 		HashMap<String,String> hashMap = new HashMap<String,String>();
 		
@@ -237,25 +236,12 @@ public class UserDAO {
 			String sql = "select name,email from usertable where id=?";
 			
 			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, id);
+			pstmt.setString(1, USession.getInstance().getId());
 			
 			ResultSet rs = pstmt.executeQuery();
 			if(rs.next()) {
 				hashMap.put("name",rs.getString("name"));
 				hashMap.put("email", rs.getString("email"));
-			}
-
-			sql = "select count(*) from invitetable where userid=?";
-			
-			pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, USession.getInstance().getId());
-			
-			rs = pstmt.executeQuery();
-			if(rs.next()) {
-				if(rs.getInt(1)>0)
-					hashMap.put("invite","exist");
-				else
-					hashMap.put("invite", "noExist");
 			}
 			
 		}catch(Exception e) {
@@ -265,6 +251,32 @@ public class UserDAO {
 		}
 		
 		return hashMap;
+	}
+	
+	public boolean getInviteExist() {
+		Connection con = null;
+		boolean isInviteExist = false;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select count(*) from invitetable where userid=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next()) {
+				if(rs.getInt(1)>0)
+					isInviteExist = true;
+			}
+		}catch(SQLException e) {
+			System.out.println("GET_INVITE_EXP: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return isInviteExist;
 	}
 	
 	public Integer changePw(String id, String pw) {
@@ -284,6 +296,53 @@ public class UserDAO {
 		}catch(Exception e) {
 			System.out.println("CHANGE_PW_ERR: "+e.toString());
 			code = ERR;
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int changeEmail(String email) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "update usertable set email=? where id=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, email);
+			pstmt.setString(2, USession.getInstance().getId());
+			
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("CHANGE_EMAIL_EXP: "+e.toString());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int withdraw() {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "delete from usertable where id=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1,USession.getInstance().getId());
+			
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("WITHDRAW_EXP: "+e.getMessage());
 		}finally {
 			closeConnection(con);
 		}
@@ -465,12 +524,6 @@ public class UserDAO {
 					pstmt = con.prepareStatement(sql);
 					pstmt.setInt(1, groupNum);
 					pstmt.execute();
-					
-					sql = "update groupproto set groupnum=(groupnum-1) where groupnum>?";
-					
-					pstmt = con.prepareStatement(sql);
-					pstmt.setInt(1, groupNum);
-					pstmt.execute();
 				}
 			}
 		}catch(SQLException e) {
@@ -509,7 +562,6 @@ public class UserDAO {
 	
 	public int sendInvite(int groupNum,String[] friends) {
 		Connection con = null;
-		int code = SUCCESS;
 		
 		try {
 			con = getConnection();
@@ -526,23 +578,24 @@ public class UserDAO {
 				pstmt.execute();
 			}
 		}catch(SQLException e) {
-			code = ERR;
+			groupNum = ERR;
 			System.out.println("SEND_INVITE_EXP: "+e.getMessage());
 		}finally {
 			closeConnection(con);
 		}
 		
-		return code;
+		return groupNum;
 	}
-	public int createGroup(String name, String[] friends) {
+	public int createGroup(String name) {
 		Connection con = null;
 		int code = SUCCESS;
+		int groupNum = ERR;
 		
 		try {
 			con = getConnection();
 			
-			String sql = "select count(*) from groupproto";
-			int groupNum = -1;
+			String sql = "select max(groupnum) from groupproto";
+			groupNum = -1;
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			ResultSet rs = pstmt.executeQuery();
@@ -562,10 +615,7 @@ public class UserDAO {
 			pstmt.setString(3, id);
 			pstmt.executeQuery();
 			
-			code = addMember(groupNum);
-			
-			if(code == SUCCESS) 
-				code = sendInvite(groupNum,friends);
+			addMember(groupNum);
 			
 		}catch(SQLException e) {
 			code = ERR;
@@ -574,7 +624,7 @@ public class UserDAO {
 			closeConnection(con);
 		}
 		
-		return code;
+		return groupNum;
 	}
 
 	
@@ -759,5 +809,30 @@ public class UserDAO {
 		}
 		
 		return code;
+	}
+	
+	public String getName() {
+		Connection con = null;
+		String name = null;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select name from usertable where id=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next())
+				name = rs.getString(1);
+			
+		}catch(SQLException e) {
+			System.out.println("GET_NAME_EXCEPTION: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return name;
 	}
 }

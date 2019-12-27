@@ -57,15 +57,14 @@ public class ScheduleServlet extends HttpServlet {
 			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
 			
 			String[] datas = new String[8];
-			String[] strTimes = request.getParameter("time").split("~");
 			
 			datas[0] = request.getParameter("aftSchedule");
 			datas[1] = request.getParameter("aftStartTime");
 			datas[2] = request.getParameter("aftEndTime");
 			datas[3] = USession.getInstance().getId();
 			datas[4] = request.getParameter("date");
-			datas[5] = strTimes[0];
-			datas[6] = strTimes[1];
+			datas[5] = request.getParameter("startTime");
+			datas[6] = request.getParameter("endTime");
 			datas[7] = request.getParameter("schedule");
 			
 			int code = dao.modifySchedule(groupNum, datas);
@@ -76,8 +75,8 @@ public class ScheduleServlet extends HttpServlet {
 			out.print(listObj);
 		}
 		else if("deleteSchedule".equals(doing)) {
-			String[] strTimes = request.getParameter("time").split("~");
-			int code = dao.deleteSchedule(request.getParameter("schedule"), request.getParameter("scheduleDate"),strTimes[0],strTimes[1]);
+			int code = dao.deleteSchedule(Integer.parseInt(request.getParameter("groupNum")),
+					request.getParameter("schedule"), request.getParameter("date"),request.getParameter("startTime"),request.getParameter("endTime"));
 			out.print(code);
 		}
 		else if("getGroupSchedule".equals(doing)) {
