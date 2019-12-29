@@ -641,13 +641,25 @@ public class UserDAO {
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, USession.getInstance().getId());
 			
+			PreparedStatement innerPstmt;
+			ResultSet innerRs;
+			
 			ResultSet rs = pstmt.executeQuery();
 			while(rs.next()) {
 				InviteObject obj = new InviteObject();
 				
 				obj.put("groupNum",rs.getInt("groupnum"));
 				obj.put("groupName",rs.getString("groupname"));
-				obj.put("managerId",rs.getString("managerid"));
+				
+				sql = "select name from usertable where id=?";
+				
+				innerPstmt = con.prepareStatement(sql);
+				innerPstmt.setString(1, rs.getString("managerid"));
+				
+				innerRs = innerPstmt.executeQuery();
+				if(innerRs.next())
+					obj.put("managerName",innerRs.getString("name"));
+				
 				invites.add(obj);
 			}
 		}catch(Exception e) {

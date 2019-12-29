@@ -11,8 +11,8 @@ public class InviteObject extends JSONObject {
     @SerializedName("groupName")
     String groupName;
 
-    @SerializedName("managerId")
-    String managerId;
+    @SerializedName("managerName")
+    String managerName;
 
     public InviteObject(){}
 
@@ -32,12 +32,12 @@ public class InviteObject extends JSONObject {
         this.groupName = groupName;
     }
 
-    public String getManagerId() {
-        return managerId;
+    public String getManagerName() {
+        return managerName;
     }
 
-    public void setManagerId(String managerId) {
-        this.managerId = managerId;
+    public void setManagerId(String managerName) {
+        this.managerName = managerName;
     }
 }
 
