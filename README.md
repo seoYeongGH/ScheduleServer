@@ -1,3 +1,4 @@
 # ScheduleServer
 It is server for ScheduleApp. 
-Basically I use Oracle SQL.
+It is made using Servlet.
+Oracle SQL is also used to operate program.
