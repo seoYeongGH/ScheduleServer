@@ -74,7 +74,7 @@ public class UserDAO {
 
 		try {
 			con = getConnection();
-			String sql = "select friend from usertable where id=?";
+			String sql = "select id from usertable where id=?";
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, id);
@@ -138,14 +138,13 @@ public class UserDAO {
 			if (chkIdDup(id))
 				return DUP_ID;
 
-			String sql = "insert into usertable values(?,?,?,?,?)";
+			String sql = "insert into usertable values(?,?,?,?)";
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, id);
 			pstmt.setString(2, pw);
 			pstmt.setString(3, name);
 			pstmt.setString(4, email);
-			pstmt.setInt(5, 0);
 			pstmt.executeQuery();
 
 
@@ -166,7 +165,7 @@ public class UserDAO {
 		try {
 			con = getConnection();
 
-			String sql = "select friend from usertable where email=? and name=?";
+			String sql = "select id from usertable where email=? and name=?";
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, name);
@@ -357,7 +356,7 @@ public class UserDAO {
 		try {
 			con = getConnection();
 			
-			String sql = "select friend from usertable where id=? and name=?";
+			String sql = "select id from usertable where id=? and name=?";
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, frdId);
