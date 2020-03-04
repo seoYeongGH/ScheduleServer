@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import domain.UserDAO;
 import structure.FriendObject;
 import structure.InviteObject;
@@ -110,7 +112,7 @@ public class UserServlet extends HttpServlet {
 			String doing = request.getParameter("doing");
 			
 			if("join".equals(doing)) {
-				Integer code = dao.insertUser(request.getParameter("id"), request.getParameter("password"),request.getParameter("name"),request.getParameter("email"));
+				Integer code = dao.insertUser(request.getParameter("id"), BCrypt.hashpw(request.getParameter("password"), BCrypt.gensalt(12)), request.getParameter("name"),request.getParameter("email"));
 				out.print(code);
 			}
 			else if("login".equals(doing)) {
@@ -122,7 +124,6 @@ public class UserServlet extends HttpServlet {
 				else {
 					Integer code = dao.chkPw(id, request.getParameter("password")); 
 					if(code==SUCCESS) {
-						//session.setAttribute("id", id);
 						USession.getInstance().setId(id);
 					}
 					System.out.println("Login ID: "+USession.getInstance().getId());
@@ -141,7 +142,7 @@ public class UserServlet extends HttpServlet {
 				out.print(dao.chkPw(USession.getInstance().getId(), request.getParameter("password")));
 			}
 			else if("changePw".equals(doing)) {
-				out.print(dao.changePw(USession.getInstance().getId(), request.getParameter("newPw")));
+				out.print(dao.changePw(USession.getInstance().getId(), BCrypt.hashpw(request.getParameter("newPw"), BCrypt.gensalt(12))));
 			}
 			else if("changeEmail".equals(doing)) {
 				out.print(dao.changeEmail(request.getParameter("email")));
@@ -195,5 +196,7 @@ public class UserServlet extends HttpServlet {
 			}
 			
 	}
+	
+	
 
 }

@@ -24,6 +24,7 @@ import javax.sql.DataSource;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.json.JSONException;
+import org.mindrot.jbcrypt.BCrypt;
 
 import com.schedule.mail.MailSender;
 
@@ -109,7 +110,7 @@ public class UserDAO {
 			
 			ResultSet rs = pstmt.executeQuery();
 			if(rs.next()) {
-				if(pw.equals(rs.getString("password")))
+				if(BCrypt.checkpw(pw,rs.getString("password")))
 					code = SUCCESS;
 				else
 					code = ERR_LOG_PW;
@@ -194,7 +195,7 @@ public class UserDAO {
 		try {
 			con = getConnection();
 			
-			String sql = "select id,password from usertable where name=? and email=?";
+			String sql = "select id from usertable where name=? and email=?";
 			
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, name);
@@ -202,15 +203,17 @@ public class UserDAO {
 			
 			ResultSet rs = pstmt.executeQuery();
 			
-			String id;
-			String pw;
-			
 			if(rs.next()) {
+				String id = rs.getString("id");
+				String pw = "";
+				for(int i=0; i<6; i++)
+					pw += (int)(Math.random()*10);
+				
+				code = changePw(id, BCrypt.hashpw(pw, BCrypt.gensalt(12)));
+				
 				MailSender sender = MailSender.getInstance();
-				id = rs.getString("id");
-				pw = rs.getString("password");
 				sender.sendMail(email, name+"님의 아이디는 [ "+id+" ], 비밀번호는 [ "+pw+" ]입니다.\n"
-						+"SCHappy에서 로그인 해주세요.");
+						+"SCHappy에서 로그인 후 비밀번호를 변경해주세요.");
 			}
 			else {
 				code = NO_DATA;

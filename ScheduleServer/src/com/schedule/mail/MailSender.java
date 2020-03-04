@@ -25,7 +25,7 @@ public class MailSender{
 		prop.put("mail.smtp.ssl.trust", "smtp.naver.com");
 		
 		Session session = Session.getDefaultInstance(prop, new javax.mail.Authenticator() {
-			String id = "Naver Id";
+			String id = "Naver Email";
 			String pw = "Naver Pw";
 			
 			protected PasswordAuthentication getPasswordAuthentication() {
