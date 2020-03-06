@@ -5,6 +5,8 @@ import static structure.Constant.ERR_LOG_ID;
 import static structure.Constant.ERR_LOG_PW;
 import static structure.Constant.SUCCESS;
 import static structure.Constant.ERR;
+import static structure.Constant.LOG_IN_SUCCESS;
+import static structure.Constant.AUTO_LOG_SUCCESS;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -117,6 +119,7 @@ public class UserServlet extends HttpServlet {
 			}
 			else if("login".equals(doing)) {
 				String id = request.getParameter("id");
+				HashMap<String, Object> hashMap = new HashMap<>();
 				
 				if(!dao.chkIdDup(id)) {
 					out.print(ERR_LOG_ID);
@@ -125,9 +128,13 @@ public class UserServlet extends HttpServlet {
 					Integer code = dao.chkPw(id, request.getParameter("password")); 
 					if(code==SUCCESS) {
 						USession.getInstance().setId(id);
+						code = LOG_IN_SUCCESS;
+						
+						hashMap.put("userCode", dao.getUserCode());
 					}
-					System.out.println("Login ID: "+USession.getInstance().getId());
-					out.print(code);
+					hashMap.put("code", code);
+					
+					out.print(hashMap);
 				}
 			}
 			else if("findInfo".equals(doing)) {
@@ -193,6 +200,18 @@ public class UserServlet extends HttpServlet {
 			}
 			else if("getName".contentEquals(doing)) {
 				out.print(dao.getName());
+			}
+			
+			else if("autoLogin".equals(doing)) {
+				out.print(dao.autoLogin(Integer.parseInt(request.getParameter("userCode"))));
+			}
+			
+			else if("getLoginInfo".equals(doing)) {
+				HashMap<String, Object> hashMap = new HashMap<>();
+				hashMap.put("name", dao.getName());
+				hashMap.put("userCode", dao.getUserCode());
+				System.out.println(dao.getUserCode());
+				out.print(hashMap);
 			}
 			
 	}

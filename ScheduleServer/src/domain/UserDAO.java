@@ -8,6 +8,9 @@ import static structure.Constant.NO_DATA;
 import static structure.Constant.SUCCESS;
 import static structure.Constant.EXIST_INVITE;
 import static structure.Constant.NO_EXIST_INVITE;
+import static structure.Constant.ERR_AUTO_LOG_IN;
+import static structure.Constant.AUTO_LOG_SUCCESS;
+
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -112,8 +115,9 @@ public class UserDAO {
 			if(rs.next()) {
 				if(BCrypt.checkpw(pw,rs.getString("password")))
 					code = SUCCESS;
-				else
+				else {
 					code = ERR_LOG_PW;
+				}
 			}
 			else {
 				code = ERR;
@@ -139,13 +143,24 @@ public class UserDAO {
 			if (chkIdDup(id))
 				return DUP_ID;
 
-			String sql = "insert into usertable values(?,?,?,?)";
+			int code=1;
 
+			
+			String sql = "select max(usercode) from usertable";
 			PreparedStatement pstmt = con.prepareStatement(sql);
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next()) {
+				code = rs.getInt(1)+1;
+			}
+			sql = "insert into usertable values(?,?,?,?,?)";
+
+			pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, id);
 			pstmt.setString(2, pw);
 			pstmt.setString(3, name);
 			pstmt.setString(4, email);
+			pstmt.setInt(5, code);
 			pstmt.executeQuery();
 
 
@@ -169,8 +184,8 @@ public class UserDAO {
 			String sql = "select id from usertable where email=? and name=?";
 
 			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, name);
-			pstmt.setString(2, email);
+			pstmt.setString(1, email);
+			pstmt.setString(2, name);
 
 			ResultSet rs = pstmt.executeQuery();
 
@@ -212,8 +227,10 @@ public class UserDAO {
 				code = changePw(id, BCrypt.hashpw(pw, BCrypt.gensalt(12)));
 				
 				MailSender sender = MailSender.getInstance();
-				sender.sendMail(email, name+"님의 아이디는 [ "+id+" ], 비밀번호는 [ "+pw+" ]입니다.\n"
-						+"SCHappy에서 로그인 후 비밀번호를 변경해주세요.");
+				sender.sendMail(email, name+"님의 회원정보\n"
+						+ "아이디: "+id+"\n"
+						+ "임시 비밀번호: "+pw+"\n"
+						+"SCHappy에서 로그인 후 비밀번호를 꼭 변경해주세요!");
 			}
 			else {
 				code = NO_DATA;
@@ -849,4 +866,61 @@ public class UserDAO {
 		
 		return name;
 	}
+	
+	public int getUserCode() {
+		Connection con = null;
+		int userCode=-1;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select usercode from usertable where id=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, USession.getInstance().getId());
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next())
+				userCode = rs.getInt(1);
+			
+		}catch(SQLException e) {
+			System.out.println("GET_NAME_EXCEPTION: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return userCode;
+	}
+	
+	public HashMap<String, Object> autoLogin(int userCode) {
+		Connection con = null;
+		
+		HashMap<String, Object> hashMap = new HashMap<>();
+		int code = AUTO_LOG_SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "select id from usertable where usercode=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, userCode);
+			
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next())
+				hashMap.put("id", rs.getString(1));
+			
+			else
+				code = ERR_AUTO_LOG_IN;
+		}catch(SQLException e) {
+			code = ERR_AUTO_LOG_IN;
+			System.out.println("AUTO_LOGIN_ERR"+e.getMessage());
+		}finally {
+			closeConnection(con);
+			hashMap.put("code", code);
+		}
+		
+		return hashMap;
+	}
+	
 }

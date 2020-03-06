@@ -9,8 +9,12 @@ public class Constant {
     public static final int DUP_USER = 3;
     
     //login
+    public static final int LOG_IN_SUCCESS = 201;
+    public static final int AUTO_LOG_SUCCESS = 202;
+   
     public static final int ERR_LOG_ID = 1;
     public static final int ERR_LOG_PW = 2;
+    public static final int ERR_AUTO_LOG_IN = 3;
     
     //find
     public static final int NO_DATA = 2;
