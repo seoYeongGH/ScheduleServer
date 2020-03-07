@@ -26,7 +26,7 @@ public class MailSender{
 		
 		Session session = Session.getDefaultInstance(prop, new javax.mail.Authenticator() {
 			String id = "Naver Email";
-			String pw = "Naver Pw";
+			String pw = "Naver Password";
 			
 			protected PasswordAuthentication getPasswordAuthentication() {
 				return new PasswordAuthentication(id,pw);

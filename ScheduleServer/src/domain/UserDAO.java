@@ -907,9 +907,10 @@ public class UserDAO {
 			pstmt.setInt(1, userCode);
 			
 			ResultSet rs = pstmt.executeQuery();
-			if(rs.next())
+			if(rs.next()) {
+				USession.getInstance().setId(rs.getString(1));
 				hashMap.put("id", rs.getString(1));
-			
+			}
 			else
 				code = ERR_AUTO_LOG_IN;
 		}catch(SQLException e) {

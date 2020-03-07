@@ -168,6 +168,7 @@ public class UserServlet extends HttpServlet {
 				out.print(code);
 			}
 			else if("getFriends".equals(doing)) {
+				System.out.println(dao.getFriends().size());
 				out.print(dao.getFriends());
 			}
 			else if("addFriend".equals(doing)) {
@@ -203,6 +204,7 @@ public class UserServlet extends HttpServlet {
 			}
 			
 			else if("autoLogin".equals(doing)) {
+				System.out.println("user: "+request.getParameter("userCode"));
 				out.print(dao.autoLogin(Integer.parseInt(request.getParameter("userCode"))));
 			}
 			
