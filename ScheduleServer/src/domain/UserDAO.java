@@ -402,7 +402,7 @@ public class UserDAO {
 		try {
 			con = getConnection();
 			
-			String sql = "select friendid, friendname from friendtable where userid=?";
+			String sql = "select friendid, friendname from friendtable where userid=? order by friendname";
 			
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, USession.getInstance().getId());

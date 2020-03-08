@@ -168,7 +168,6 @@ public class UserServlet extends HttpServlet {
 				out.print(code);
 			}
 			else if("getFriends".equals(doing)) {
-				System.out.println(dao.getFriends().size());
 				out.print(dao.getFriends());
 			}
 			else if("addFriend".equals(doing)) {
