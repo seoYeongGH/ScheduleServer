@@ -10,6 +10,7 @@ import static structure.Constant.EXIST_INVITE;
 import static structure.Constant.NO_EXIST_INVITE;
 import static structure.Constant.ERR_AUTO_LOG_IN;
 import static structure.Constant.AUTO_LOG_SUCCESS;
+import static structure.Constant.LOG_IN_SUCCESS;
 
 
 import java.sql.Connection;
@@ -153,14 +154,13 @@ public class UserDAO {
 			if(rs.next()) {
 				code = rs.getInt(1)+1;
 			}
-			sql = "insert into usertable values(?,?,?,?,?)";
+			sql = "insert into usertable values(?,?,?,?)";
 
 			pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, id);
 			pstmt.setString(2, pw);
 			pstmt.setString(3, name);
 			pstmt.setString(4, email);
-			pstmt.setInt(5, code);
 			pstmt.executeQuery();
 
 
@@ -867,32 +867,7 @@ public class UserDAO {
 		return name;
 	}
 	
-	public int getUserCode() {
-		Connection con = null;
-		int userCode=-1;
-		
-		try {
-			con = getConnection();
-			
-			String sql = "select usercode from usertable where id=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, USession.getInstance().getId());
-			
-			ResultSet rs = pstmt.executeQuery();
-			if(rs.next())
-				userCode = rs.getInt(1);
-			
-		}catch(SQLException e) {
-			System.out.println("GET_NAME_EXCEPTION: "+e.getMessage());
-		}finally {
-			closeConnection(con);
-		}
-		
-		return userCode;
-	}
-	
-	public HashMap<String, Object> autoLogin(int userCode) {
+	public HashMap<String, Object> autoLogin(String userCode) {
 		Connection con = null;
 		
 		HashMap<String, Object> hashMap = new HashMap<>();
@@ -901,18 +876,19 @@ public class UserDAO {
 		try {
 			con = getConnection();
 			
-			String sql = "select id from usertable where usercode=?";
+			String sql = "select id from codetable where usercode=?";
 			
 			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, userCode);
+			pstmt.setString(1, userCode);
 			
 			ResultSet rs = pstmt.executeQuery();
 			if(rs.next()) {
 				USession.getInstance().setId(rs.getString(1));
 				hashMap.put("id", rs.getString(1));
 			}
-			else
+			else {
 				code = ERR_AUTO_LOG_IN;
+			}
 		}catch(SQLException e) {
 			code = ERR_AUTO_LOG_IN;
 			System.out.println("AUTO_LOGIN_ERR"+e.getMessage());
@@ -922,6 +898,74 @@ public class UserDAO {
 		}
 		
 		return hashMap;
+	}
+	
+	public int updateCode(String oldCode, String newCode) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "update codetable set usercode=? where usercode=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, newCode);
+			pstmt.setString(2, oldCode);
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("UPDATE_CODE_ERR: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int addCode(String userCode) {
+		Connection con = null;
+		int code = LOG_IN_SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "insert into codetable values(?,?)";
+		
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1,userCode);
+			pstmt.setString(2, USession.getInstance().getId());
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("ADD_CODE_ERR: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
+	}
+	
+	public int logout(String userCode) {
+		Connection con = null;
+		int code = SUCCESS;
+		
+		try {
+			con = getConnection();
+			
+			String sql = "delete from codetable where usercode=?";
+			
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, userCode);
+			pstmt.execute();
+		}catch(SQLException e) {
+			code = ERR;
+			System.out.println("LOG_OUT_ERR: "+e.getMessage());
+		}finally {
+			closeConnection(con);
+		}
+		
+		return code;
 	}
 	
 }
