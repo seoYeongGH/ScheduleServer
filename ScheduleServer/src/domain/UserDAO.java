@@ -30,7 +30,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.json.JSONException;
 import org.mindrot.jbcrypt.BCrypt;
 
-import com.schedule.mail.MailSender;
+import com.schedule.message.FirebaseMsgSender;
+import com.schedule.message.MailSender;
 
 import structure.FriendObject;
 import structure.GroupObject;
@@ -596,6 +597,23 @@ public class UserDAO {
 				pstmt.setString(2,friends[i]);
 				pstmt.execute();
 			}
+			
+			FirebaseMsgSender msgSender = new FirebaseMsgSender();
+			ArrayList<String> tokens = new ArrayList<>();
+			
+			sql = "select usercode from codetable where id=?";
+			pstmt = con.prepareStatement(sql);
+			ResultSet rs;
+			
+			for(String friend : friends){
+				pstmt.setString(1, friend);
+				rs = pstmt.executeQuery();
+				
+				while(rs.next())
+					tokens.add(rs.getString(1));
+			}
+			
+			msgSender.sendGroupInvite(tokens);
 		}catch(SQLException e) {
 			groupNum = ERR;
 			System.out.println("SEND_INVITE_EXP: "+e.getMessage());

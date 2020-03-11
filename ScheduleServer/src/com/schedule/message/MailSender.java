@@ -1,4 +1,4 @@
-package com.schedule.mail;
+package com.schedule.message;
 
 import java.util.Properties;
 
