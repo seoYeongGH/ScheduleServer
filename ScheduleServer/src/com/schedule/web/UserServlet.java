@@ -56,7 +56,6 @@ public class UserServlet extends HttpServlet {
 		} else if ("getInviteExist".equals(doing)) {
 			out.print(dao.getInviteExist());
 		} else if ("getGroups".equals(doing)) {
-			System.out.println("getGroups");
 			out.print(dao.getGroups());
 		} else if ("deleteGroup".equals(doing)) {
 			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
@@ -83,7 +82,6 @@ public class UserServlet extends HttpServlet {
 
 			out.println(groupNum);
 		} else if ("getLinkGroups".equals(doing)) {
-			System.out.println("getGroupNums");
 			out.print(dao.getGroupNums());
 		}
 
@@ -186,7 +184,6 @@ public class UserServlet extends HttpServlet {
 		else if ("autoLogin".equals(doing)) {
 			out.print(dao.autoLogin(request.getParameter("userCode")));
 		}
-		
 		else if ("updateCode".equals(doing)) {
 			out.print(dao.updateCode(request.getParameter("oldCode"), request.getParameter("newCode")));
 		}
