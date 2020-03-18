@@ -135,7 +135,6 @@ public class ScheduleDAO {
 						
 						listObj.add(schObj);
 						
-						
 						startTimes.clear();
 						endTimes.clear();
 						schedules.clear();

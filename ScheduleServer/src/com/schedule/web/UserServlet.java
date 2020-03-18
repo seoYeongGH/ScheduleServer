@@ -49,7 +49,6 @@ public class UserServlet extends HttpServlet {
 		String doing = request.getParameter("doing");
 
 		if ("chkId".equals(doing)) {
-			System.out.println("START_CHKID");
 			if (dao.chkIdDup(request.getParameter("id")))
 				out.print(DUP_ID);
 			else
@@ -57,6 +56,7 @@ public class UserServlet extends HttpServlet {
 		} else if ("getInviteExist".equals(doing)) {
 			out.print(dao.getInviteExist());
 		} else if ("getGroups".equals(doing)) {
+			System.out.println("getGroups");
 			out.print(dao.getGroups());
 		} else if ("deleteGroup".equals(doing)) {
 			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
@@ -83,6 +83,7 @@ public class UserServlet extends HttpServlet {
 
 			out.println(groupNum);
 		} else if ("getLinkGroups".equals(doing)) {
+			System.out.println("getGroupNums");
 			out.print(dao.getGroupNums());
 		}
 
@@ -134,9 +135,8 @@ public class UserServlet extends HttpServlet {
 		} else if ("findInfo".equals(doing)) {
 			int code = dao.findId(request.getParameter("name"), request.getParameter("email"));
 			out.print(code);
-		} else if ("getInfo".equals(doing)) {
-			HashMap<String, String> hashInfo = dao.getInfo();
-			out.print(hashInfo);
+		} else if ("getEmail".equals(doing)) {
+			out.print(dao.getEmail());
 		} else if ("chkPw".equals(doing)) {
 			out.print(dao.chkPw(USession.getInstance().getId(), request.getParameter("password")));
 		} else if ("changePw".equals(doing)) {

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class FirebaseMsgSender {
 	
 	public String sendGroupInvite(ArrayList<String> tokens) {
-		final String apiKey = "API KEY";
+		final String apiKey = "AAAAN0ZL_IM:APA91bF8GHbjusLbWZu-2mu4xg5sitnXt0GAxMOciVR5IeD6_zLgTdLIDqlO4ToQzU-s8pUfYDRlCHc6jYGoM0gfFOBj2YtDht8iMTYzU0nMK3KRvzEZp49gX1N0oAAAEoCiFMzUfle_";
         URL url = null;
 		
         try {

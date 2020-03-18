@@ -246,23 +246,22 @@ public class UserDAO {
 		return code;
 	}
 	
-	public HashMap<String,String> getInfo() {
+	public String getEmail() {
 		Connection con = null;
-		HashMap<String,String> hashMap = new HashMap<String,String>();
+		String email = null;
 		
 		try {
 			con = getConnection();
 			
-			String sql = "select name,email from usertable where id=?";
+			String sql = "select email from usertable where id=?";
 			
 			PreparedStatement pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, USession.getInstance().getId());
 			
 			ResultSet rs = pstmt.executeQuery();
-			if(rs.next()) {
-				hashMap.put("name",rs.getString("name"));
-				hashMap.put("email", rs.getString("email"));
-			}
+			if(rs.next())
+				email = rs.getString("email");
+			
 			
 		}catch(Exception e) {
 			System.out.println("GET_INFO_ERR: "+e.toString());
@@ -270,7 +269,7 @@ public class UserDAO {
 			closeConnection(con);
 		}
 		
-		return hashMap;
+		return email;
 	}
 	
 	public boolean getInviteExist() {
