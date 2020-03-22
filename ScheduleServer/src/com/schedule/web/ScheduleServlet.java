@@ -2,10 +2,7 @@ package com.schedule.web;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,16 +10,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import domain.ScheduleDAO;
 import structure.ScheduleObject;
 import structure.USession;
 
-import static structure.Constant.FOR_USER;
 import static structure.Constant.FLAG_ADD;
-import static structure.Constant.FLAG_ADD_GROUP;
 import static structure.Constant.FLAG_MODIFY;
 
 @WebServlet("/sch.do")

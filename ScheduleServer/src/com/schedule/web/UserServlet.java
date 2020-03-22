@@ -2,15 +2,11 @@ package com.schedule.web;
 
 import static structure.Constant.DUP_ID;
 import static structure.Constant.ERR_LOG_ID;
-import static structure.Constant.ERR_LOG_PW;
 import static structure.Constant.SUCCESS;
-import static structure.Constant.ERR;
 import static structure.Constant.LOG_IN_SUCCESS;
-import static structure.Constant.AUTO_LOG_SUCCESS;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.servlet.ServletException;
@@ -23,8 +19,6 @@ import javax.servlet.http.HttpSession;
 import org.mindrot.jbcrypt.BCrypt;
 
 import domain.UserDAO;
-import structure.FriendObject;
-import structure.InviteObject;
 import structure.USession;
 
 /**

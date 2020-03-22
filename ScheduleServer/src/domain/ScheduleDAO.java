@@ -6,24 +6,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import structure.ScheduleObject;
 import structure.USession;
 
-import static structure.Constant.SUCCESS;
 import static structure.Constant.ERR;
 import static structure.Constant.ADD_SUCCESS;
 import static structure.Constant.MOD_SUCCESS;

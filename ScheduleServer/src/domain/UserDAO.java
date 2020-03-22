@@ -6,8 +6,6 @@ import static structure.Constant.ERR;
 import static structure.Constant.ERR_LOG_PW;
 import static structure.Constant.NO_DATA;
 import static structure.Constant.SUCCESS;
-import static structure.Constant.EXIST_INVITE;
-import static structure.Constant.NO_EXIST_INVITE;
 import static structure.Constant.ERR_AUTO_LOG_IN;
 import static structure.Constant.AUTO_LOG_SUCCESS;
 import static structure.Constant.LOG_IN_SUCCESS;
@@ -20,14 +18,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
-import org.eclipse.jdt.annotation.Nullable;
-import org.json.JSONException;
 import org.mindrot.jbcrypt.BCrypt;
 
 import com.schedule.message.FirebaseMsgSender;

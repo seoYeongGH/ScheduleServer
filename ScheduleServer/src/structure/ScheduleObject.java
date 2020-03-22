@@ -1,9 +1,6 @@
 package structure;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.gson.annotations.SerializedName;

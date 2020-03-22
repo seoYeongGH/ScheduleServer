@@ -1,6 +1,5 @@
 package structure;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.gson.annotations.SerializedName;
