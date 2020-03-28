@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
-import domain.ConnectionManager;
 import domain.ScheduleDAO;
 import structure.ScheduleObject;
 import structure.USession;

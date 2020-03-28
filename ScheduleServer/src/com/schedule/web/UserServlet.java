@@ -21,7 +21,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
-import domain.ConnectionManager;
 import domain.UserDAO;
 import structure.USession;
 
@@ -115,21 +114,22 @@ public class UserServlet extends HttpServlet {
 		} else if ("login".equals(doing)) {
 			String id = request.getParameter("id");
 			HashMap<String, Object> hashMap = new HashMap<>();
-
+			Integer code = SUCCESS;
+			
 			if (!dao.chkIdDup(id)) {
-				out.print(ERR_LOG_ID);
+				code = ERR_LOG_ID;
 			} else {
-				Integer code = dao.chkPw(id, request.getParameter("password"));
+				code = dao.chkPw(id, request.getParameter("password"));
 				if (code == SUCCESS) {
 					USession.getInstance().setId(id);
 					code = LOG_IN_SUCCESS;
 				}
 				if (code == LOG_IN_SUCCESS)
 					code = dao.addCode(request.getParameter("userCode"));
-
-				hashMap.put("code", code);
-				out.print(hashMap);
 			}
+			
+			hashMap.put("code", code);
+			out.print(hashMap);
 		} else if ("findInfo".equals(doing)) {
 			int code = dao.findId(request.getParameter("name"), request.getParameter("email"));
 			out.print(code);
@@ -158,7 +158,7 @@ public class UserServlet extends HttpServlet {
 		} else if ("addFriend".equals(doing)) {
 			out.print(dao.addFriend(request.getParameter("name"), request.getParameter("id")));
 		} else if ("deleteFriend".equals(doing)) {
-			out.print(dao.deleteFriend(request.getParameter("name"), request.getParameter("id")));
+			out.println(dao.deleteFriend(request.getParameter("name"), request.getParameter("id")));
 		} else if ("getMembers".equals(doing)) {
 			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
 			out.print(dao.getMembers(groupNum));

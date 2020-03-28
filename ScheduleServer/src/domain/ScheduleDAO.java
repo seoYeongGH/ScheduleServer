@@ -34,9 +34,7 @@ public class ScheduleDAO {
 		}
 	}
 	
-	ConnectionManager conManager;
 	DataSource dataSource;
-	
 	private JdbcTemplate jdbcTemplate;
 	
 	public ScheduleDAO() {}
@@ -79,7 +77,6 @@ public class ScheduleDAO {
 			String sql = "insert into scheduletable values(?,?,?,?,?,?)";
 			PreparedStatement pstmt = con.prepareStatement(sql);
 
-			System.out.println("ADD "+groupNum);
 			if(groupNum == FOR_USER) {
 				pstmt.setString(1, USession.getInstance().getId());
 				pstmt.setNull(2, Types.INTEGER);

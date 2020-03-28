@@ -44,9 +44,7 @@ public class UserDAO {
 		}
 	}
 	
-	ConnectionManager conManager;
 	DataSource dataSource;
-	
 	private JdbcTemplate jdbcTemplate;
 	
 	public UserDAO() {}
@@ -95,8 +93,6 @@ public class UserDAO {
 			if (rs.next())
 				flag = true;
 
-			else
-				flag = false;
 		} catch (Exception e) {
 			System.out.println("CHK_ID_EXP: " + e.toString());
 		} finally {
@@ -138,44 +134,21 @@ public class UserDAO {
 		
 		return code;
 	}
+	
 	public int insertUser(String id, String pw, String name, String email) {
-		Connection con = null;
 		int flag = SUCCESS;
 
 		try {
-			con = getConnection();
-
 			if (chkUserDup(id, name, email))
 				return DUP_USER;
 
 			if (chkIdDup(id))
 				return DUP_ID;
 
-			int code=1;
-
-			
-			String sql = "select max(usercode) from usertable";
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			
-			ResultSet rs = pstmt.executeQuery();
-			if(rs.next()) {
-				code = rs.getInt(1)+1;
-			}
-			sql = "insert into usertable values(?,?,?,?)";
-
-			pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, id);
-			pstmt.setString(2, pw);
-			pstmt.setString(3, name);
-			pstmt.setString(4, email);
-			pstmt.executeQuery();
-
-
+			jdbcTemplate.update("insert into usertable values(?,?,?,?)", id, pw, name, email);
 		} catch (Exception e) {
-			System.out.println("INSERT_USER_EXP: " + e.getMessage());
 			flag = ERR;
-		} finally {
-			closeConnection(con);
+			System.out.println("INSERT_USER_EXP: " + e.getMessage());
 		}
 
 		return flag;
@@ -305,71 +278,42 @@ public class UserDAO {
 	}
 	
 	public Integer changePw(String id, String pw) {
-		Connection con = null;
 		Integer code = SUCCESS;
 		
 		try {
-			con = getConnection();
-			
-			String sql = "update usertable set password=? where id=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, pw);
-			pstmt.setString(2, id);
-			
-			pstmt.executeQuery();
+			jdbcTemplate.update("update usertable set password=? where id=?",pw,id);
+		
 		}catch(Exception e) {
-			System.out.println("CHANGE_PW_ERR: "+e.toString());
 			code = ERR;
-		}finally {
-			closeConnection(con);
+			System.out.println("CHANGE_PW_ERR: "+e.toString());
 		}
 		
 		return code;
 	}
 	
 	public int changeEmail(String email) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
+			jdbcTemplate.update("update usertable set email=? where id=?",email,USession.getInstance().getId());
 			
-			String sql = "update usertable set email=? where id=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, email);
-			pstmt.setString(2, USession.getInstance().getId());
-			
-			pstmt.execute();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("CHANGE_EMAIL_EXP: "+e.toString());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
 	}
 	
 	public int withdraw() {
-		Connection con = null;
 		int code = SUCCESS;
 		
-		try {
-			con = getConnection();
+		try {			
+			jdbcTemplate.update("delete from usertable where id=?",USession.getInstance().getId());
 			
-			String sql = "delete from usertable where id=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1,USession.getInstance().getId());
-			
-			pstmt.execute();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("WITHDRAW_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
@@ -472,50 +416,28 @@ public class UserDAO {
 	}
 	
 	public int addFriend(String name, String id) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
+			jdbcTemplate.update("insert into friendtable values(?,?,?)",USession.getInstance().getId(),id,name);
 			
-			String sql = "insert into friendtable values(?,?,?)";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, USession.getInstance().getId());
-			pstmt.setString(2, id);
-			pstmt.setString(3, name);
-			
-			pstmt.executeQuery();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("ADD_FRIEND_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
 	}
 	
 	public int deleteFriend(String name, String id) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
+			jdbcTemplate.update("delete from friendtable where userid=? and friendid=? and friendname=?",USession.getInstance().getId(),id,name);
 			
-			String sql = "delete from friendtable where userid=? and friendid=? and friendname=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1,USession.getInstance().getId());
-			pstmt.setString(2, id);
-			pstmt.setString(3, name);
-			
-			pstmt.executeQuery();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("DELETE_FRIEND_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
@@ -562,24 +484,14 @@ public class UserDAO {
 	}
 	
 	public int addMember(int groupNum) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
-			
-			String sql = "insert into grouptable values(?,?)";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, groupNum);
-			pstmt.setString(2, USession.getInstance().getId());
-			pstmt.execute();
-		}catch(SQLException e) {
+			jdbcTemplate.update("insert into grouptable values(?,?)",groupNum,USession.getInstance().getId());
+		
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("ADD_MEMBER_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
@@ -714,23 +626,14 @@ public class UserDAO {
 	}
 	
 	public int deleteInvite(int groupNum) {
-		Connection con = null;
 		int code = SUCCESS;
 		
-		try {
-			con = getConnection();
+		try {			
+			jdbcTemplate.update("delete from invitetable where groupnum=? and userid=?", groupNum, USession.getInstance().getId());
 			
-			String sql = "delete from invitetable where groupnum=? and userid=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, groupNum);
-			pstmt.setString(2, USession.getInstance().getId());
-			pstmt.execute();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("DEL_INVITE_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
@@ -784,6 +687,10 @@ public class UserDAO {
 				pstmt.setString(2, ids[i]);
 				pstmt.execute();
 			}
+			/*
+			for(int i=0; i<idSize; i++)
+				jdbcTemplate.update("delete from grouptable where groupnum=? and memberid=?", groupNum, ids[i]);
+			*/
 		}catch(SQLException e) {
 			code = ERR;
 			System.out.println("WITHDRAW_EXP: "+e.getMessage());
@@ -820,46 +727,28 @@ public class UserDAO {
 		
 }
 	public int connectGroup(int groupNum) {
-		Connection con  = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
+			jdbcTemplate.update("insert into linktable values(?,?)", groupNum, USession.getInstance().getId());
 			
-			String sql = "insert into linktable values(?,?)";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1,groupNum);
-			pstmt.setString(2,USession.getInstance().getId());
-			pstmt.execute();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("CONNECT_GROUP_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
 	}
 	
 	public int disConnectGroup(int groupNum) {
-		Connection con  = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
+			jdbcTemplate.update("delete from linktable where groupNum=? and userid=?", groupNum, USession.getInstance().getId());
 			
-			String sql = "delete from linktable where groupNum=? and userid=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1,groupNum);
-			pstmt.setString(2,USession.getInstance().getId());
-			pstmt.execute();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("DISCON_GROUP_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
@@ -924,68 +813,42 @@ public class UserDAO {
 	}
 	
 	public int updateCode(String oldCode, String newCode) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
+			jdbcTemplate.update("update codetable set usercode=? where usercode=?", newCode, oldCode);
 			
-			String sql = "update codetable set usercode=? where usercode=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, newCode);
-			pstmt.setString(2, oldCode);
-			pstmt.execute();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("UPDATE_CODE_ERR: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
 	}
 	
 	public int addCode(String userCode) {
-		Connection con = null;
 		int code = LOG_IN_SUCCESS;
 		
 		try {
-			con = getConnection();
+			jdbcTemplate.update("insert into codetable values(?,?)", userCode, USession.getInstance().getId());
 			
-			String sql = "insert into codetable values(?,?)";
-		
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1,userCode);
-			pstmt.setString(2, USession.getInstance().getId());
-			pstmt.execute();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("ADD_CODE_ERR: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
 	}
 	
 	public int logout(String userCode) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
+			jdbcTemplate.update("delete from codetable where usercode=?", userCode);
 			
-			String sql = "delete from codetable where usercode=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, userCode);
-			pstmt.execute();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("LOG_OUT_ERR: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;

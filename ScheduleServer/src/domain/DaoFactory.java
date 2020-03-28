@@ -5,11 +5,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class DaoFactory {
-
-	@Bean
-	public ConnectionManager connectionManager() {
-		return new ConnectionManager();
-	}
 	
 	@Bean
 	public UserDAO userDao() {
