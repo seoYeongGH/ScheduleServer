@@ -17,7 +17,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
+import domain.ConnectionManager;
 import domain.UserDAO;
 import structure.USession;
 
@@ -27,10 +31,12 @@ import structure.USession;
 @WebServlet("/user.do")
 public class UserServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	ApplicationContext context;
 	private UserDAO dao;
-
+	
 	public UserServlet() {
-		dao = new UserDAO();
+		context = new GenericXmlApplicationContext("domain/applicationContext.xml");
+		dao = context.getBean("userDAO",UserDAO.class);
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)

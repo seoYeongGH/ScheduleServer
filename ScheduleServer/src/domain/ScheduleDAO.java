@@ -13,6 +13,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import structure.ScheduleObject;
 import structure.USession;
 
@@ -26,34 +28,44 @@ public class ScheduleDAO {
 	static {
 		try {
 			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-			System.out.println("Connect Driver");
-		}catch(SQLException e) {
+			System.out.println("Connect");
+		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
 	}
 	
-	private Connection getConnection() {
-		DataSource ds = null;
-		Connection con = null;
-		
-		try {
-			Context ctx = new InitialContext();
-			ds = (DataSource)ctx.lookup("java:comp/env/jdbc/Oracle");
-			con = ds.getConnection();
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		return con;
+	ConnectionManager conManager;
+	DataSource dataSource;
+	
+	private JdbcTemplate jdbcTemplate;
+	
+	public ScheduleDAO() {}
+	
+	public void setDataSource(DataSource dataSource) {
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+		this.dataSource = dataSource;
 	}
 	
-	private void closeConnection(Connection con) {
-		if(con != null) {
+	public Connection getConnection() {
+		Connection con = null;
+
+		try {
+			con = dataSource.getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return con;
+	}
+
+	public void closeConnection(Connection con) {
+		if (con != null) {
 			try {
 				con.close();
-			}catch(Exception e) {}
+			} catch (Exception e) {
+			}
 		}
-		
+
 		return;
 	}
 	

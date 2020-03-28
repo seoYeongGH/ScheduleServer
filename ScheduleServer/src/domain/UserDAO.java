@@ -24,6 +24,7 @@ import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.schedule.message.FirebaseMsgSender;
 import com.schedule.message.MailSender;
@@ -42,15 +43,24 @@ public class UserDAO {
 			System.out.println(e.getMessage());
 		}
 	}
-
-	private Connection getConnection() {
-		DataSource ds = null;
+	
+	ConnectionManager conManager;
+	DataSource dataSource;
+	
+	private JdbcTemplate jdbcTemplate;
+	
+	public UserDAO() {}
+	
+	public void setDataSource(DataSource dataSource) {
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+		this.dataSource = dataSource;
+	}
+	
+	public Connection getConnection() {
 		Connection con = null;
 
 		try {
-			Context ctx = new InitialContext();
-			ds = (DataSource) ctx.lookup("java:comp/env/jdbc/Oracle");
-			con = ds.getConnection();
+			con = dataSource.getConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -58,7 +68,7 @@ public class UserDAO {
 		return con;
 	}
 
-	private void closeConnection(Connection con) {
+	public void closeConnection(Connection con) {
 		if (con != null) {
 			try {
 				con.close();
@@ -102,6 +112,7 @@ public class UserDAO {
 		
 		try {
 			con = getConnection();
+			System.out.println(jdbcTemplate==null);
 			
 			String sql = "select password from usertable where id=?";
 			

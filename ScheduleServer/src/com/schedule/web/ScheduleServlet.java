@@ -4,12 +4,18 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
+import javax.naming.Context;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
+
+import domain.ConnectionManager;
 import domain.ScheduleDAO;
 import structure.ScheduleObject;
 import structure.USession;
@@ -20,8 +26,13 @@ import static structure.Constant.FLAG_MODIFY;
 @WebServlet("/sch.do")
 public class ScheduleServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+    ApplicationContext context; 
+	ScheduleDAO dao;
      
-    public ScheduleServlet() { }
+    public ScheduleServlet() {
+    	context = new GenericXmlApplicationContext("domain/applicationContext.xml");
+		dao = context.getBean("scheduleDAO",ScheduleDAO.class);
+    }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
@@ -34,7 +45,6 @@ public class ScheduleServlet extends HttpServlet {
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
 		
-		ScheduleDAO dao = new ScheduleDAO();
 		PrintWriter out = response.getWriter();
 		
 		String doing = request.getParameter("doing");
