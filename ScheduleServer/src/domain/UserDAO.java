@@ -111,7 +111,6 @@ public class UserDAO {
 		
 		try {
 			con = getConnection();
-			System.out.println(jdbcTemplate==null);
 			
 			String sql = "select password from usertable where id=?";
 			
@@ -244,7 +243,6 @@ public class UserDAO {
 			if(rs.next())
 				email = rs.getString("email");
 			
-			
 		}catch(Exception e) {
 			System.out.println("GET_INFO_ERR: "+e.toString());
 		}finally {
@@ -368,71 +366,39 @@ public class UserDAO {
 	}
 	
 	public HashMap getGroups(){
-		Connection con = null;
-		HashMap<String,ArrayList<GroupObject>> groups = new HashMap();
+		String id = USession.getInstance().getId();
 		
-		try {
-			/*con = getConnection();
+		HashMap<String,ArrayList<GroupObject>> groups = new HashMap<>();
+		
+		ArrayList<GroupObject> isManager = new ArrayList<GroupObject>();
+		ArrayList<GroupObject> notManager = new ArrayList<GroupObject>();
 			
-			String sql = "select b.groupnum,b.groupname,b.managerid "
-					+ "from grouptable a join groupproto b on a.groupnum = b.groupnum where memberid=?"
-					+ "order by b.groupname";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, USession.getInstance().getId());
-			
-			ArrayList<GroupObject> isManager = new ArrayList<GroupObject>();
-			ArrayList<GroupObject> notManager = new ArrayList<GroupObject>();
-			String id = USession.getInstance().getId();
-			
-			ResultSet rs = pstmt.executeQuery();
-			while(rs.next()) {
-				GroupObject obj = new GroupObject();
-				obj.put("groupNum",rs.getInt("groupnum"));
-				obj.put("groupName",rs.getString("groupname"));
-				
-				if(id.equals(rs.getString("managerid")))
-					isManager.add(obj);
-				else
-					notManager.add(obj);
-			}
-			*/
-			String id = USession.getInstance().getId();
-			ArrayList<GroupObject> isManager = new ArrayList<GroupObject>();
-			ArrayList<GroupObject> notManager = new ArrayList<GroupObject>();
-			
-			jdbcTemplate.query("select b.groupnum,b.groupname,b.managerid from grouptable a join groupproto b on a.groupnum = b.groupnum "
-								+ "where memberid=? order by b.groupname",
-								new Object[] {id},
+		jdbcTemplate.query("select b.groupnum,b.groupname,b.managerid from grouptable a join groupproto b on a.groupnum = b.groupnum "
+							+ "where memberid=? order by b.groupname",
+							new Object[] {id},
 															 
-									new RowMapper<GroupObject>() {
-										public GroupObject mapRow(ResultSet rs, int rowNum) throws SQLException{
-											GroupObject group = new GroupObject();
+							new RowMapper<GroupObject>() {
+								public GroupObject mapRow(ResultSet rs, int rowNum) throws SQLException{
+									GroupObject group = new GroupObject();
 																	
-											try {
-													group.put("groupNum",rs.getInt("groupnum"));
-													group.put("groupName",rs.getString("groupname"));
-												}catch(JSONException e) {
-													System.out.println("GET_GROUP_EXP: "+e.getMessage());
-												}
-																	
-											if(id.equals(rs.getString("managerid")))
-												isManager.add(group);
-											else
-												notManager.add(group);
-											
-											return group;
+									try {
+											group.put("groupNum",rs.getInt("groupnum"));
+											group.put("groupName",rs.getString("groupname"));
+										}catch(JSONException e) {
+											System.out.println("GET_GROUP_EXP: "+e.getMessage());
 										}
+																	
+									if(id.equals(rs.getString("managerid")))
+										isManager.add(group);
+									else
+										notManager.add(group);
+											
+									return group;
+								}
 			});
 			
-			
-			groups.put("isManager",isManager);
-			groups.put("notManager",notManager);
-		}catch(Exception e) {
-			System.out.println("GET_GROUP_EXP: "+e.getMessage());
-		}finally {
-			//closeConnection(con);
-		}
+		groups.put("isManager",isManager);
+		groups.put("notManager",notManager);
 		
 		return groups;
 	}
