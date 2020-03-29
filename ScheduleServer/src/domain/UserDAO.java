@@ -18,13 +18,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import org.json.JSONException;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 import com.schedule.message.FirebaseMsgSender;
 import com.schedule.message.MailSender;
@@ -345,33 +348,23 @@ public class UserDAO {
 		return code;
 	}
 	
-	public ArrayList<FriendObject> getFriends() {
-		Connection con = null;
-		ArrayList<FriendObject> list = new ArrayList<FriendObject>();
-		
-		try {
-			con = getConnection();
-			
-			String sql = "select friendid, friendname from friendtable where userid=? order by friendname";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, USession.getInstance().getId());
-			
-			ResultSet rs = pstmt.executeQuery();
-			while(rs.next()) {
-				FriendObject obj = new FriendObject();
-				
-				obj.put("name",rs.getString("friendname"));
-				obj.put("id", rs.getString("friendid"));
-				list.add(obj);
-			}
-		}catch(Exception e) {
-			System.out.println("GET_FRIEND_EXP: "+e.getMessage());
-			e.printStackTrace();
-		}finally {
-			closeConnection(con);
-		}
-		return list;
+	public List<FriendObject> getFriends() {
+		return jdbcTemplate.query("select friendid, friendname from friendtable where userid=? order by friendname", 
+									new Object[] {USession.getInstance().getId()},
+									
+									new RowMapper<FriendObject>() {
+										public FriendObject mapRow(ResultSet rs, int rowNum) throws SQLException{
+											FriendObject friend = new FriendObject();
+											
+											try {
+												friend.put("name",rs.getString("friendname"));
+												friend.put("id", rs.getString("friendid"));
+											}catch(JSONException e) {
+												System.out.println("GET_FRIEND_EXP: "+e.getMessage());
+											}
+											return friend;
+										}
+		});
 	}
 	
 	public HashMap getGroups(){
@@ -379,7 +372,7 @@ public class UserDAO {
 		HashMap<String,ArrayList<GroupObject>> groups = new HashMap();
 		
 		try {
-			con = getConnection();
+			/*con = getConnection();
 			
 			String sql = "select b.groupnum,b.groupname,b.managerid "
 					+ "from grouptable a join groupproto b on a.groupnum = b.groupnum where memberid=?"
@@ -403,13 +396,42 @@ public class UserDAO {
 				else
 					notManager.add(obj);
 			}
+			*/
+			String id = USession.getInstance().getId();
+			ArrayList<GroupObject> isManager = new ArrayList<GroupObject>();
+			ArrayList<GroupObject> notManager = new ArrayList<GroupObject>();
+			
+			jdbcTemplate.query("select b.groupnum,b.groupname,b.managerid from grouptable a join groupproto b on a.groupnum = b.groupnum "
+								+ "where memberid=? order by b.groupname",
+								new Object[] {id},
+															 
+									new RowMapper<GroupObject>() {
+										public GroupObject mapRow(ResultSet rs, int rowNum) throws SQLException{
+											GroupObject group = new GroupObject();
+																	
+											try {
+													group.put("groupNum",rs.getInt("groupnum"));
+													group.put("groupName",rs.getString("groupname"));
+												}catch(JSONException e) {
+													System.out.println("GET_GROUP_EXP: "+e.getMessage());
+												}
+																	
+											if(id.equals(rs.getString("managerid")))
+												isManager.add(group);
+											else
+												notManager.add(group);
+											
+											return group;
+										}
+			});
+			
 			
 			groups.put("isManager",isManager);
 			groups.put("notManager",notManager);
 		}catch(Exception e) {
 			System.out.println("GET_GROUP_EXP: "+e.getMessage());
 		}finally {
-			closeConnection(con);
+			//closeConnection(con);
 		}
 		
 		return groups;
@@ -541,41 +563,16 @@ public class UserDAO {
 		return groupNum;
 	}
 	public int createGroup(String name) {
-		Connection con = null;
-		int code = SUCCESS;
 		int groupNum = ERR;
 		
 		try {
-			con = getConnection();
-			
-			String sql = "select max(groupnum) from groupproto";
-			groupNum = -1;
-
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			ResultSet rs = pstmt.executeQuery();
-			
-			if(rs.next())
-				groupNum = rs.getInt(1)+1;
-			else {
-				code = ERR;
-			}
-			
-			String id = USession.getInstance().getId();
-			sql = "insert into groupproto values(?,?,?)";
-			
-			pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, groupNum);
-			pstmt.setString(2,name);
-			pstmt.setString(3, id);
-			pstmt.executeQuery();
+			groupNum = jdbcTemplate.queryForInt("select max(groupnum) from groupproto")+1;
+			jdbcTemplate.update("insert into groupproto values(?,?,?)", groupNum, name, USession.getInstance().getId());
 			
 			addMember(groupNum);
-			
-		}catch(SQLException e) {
-			code = ERR;
+		}catch(Exception e) {
+			groupNum = ERR;
 			System.out.println("CREATE_GROUP_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return groupNum;
@@ -671,31 +668,16 @@ public class UserDAO {
 	}
 	
 	public int withdrawMember(int groupNum, String[] ids) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
-			
-			String sql = "delete from grouptable where groupnum=? and memberid=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, groupNum);
-			
 			int idSize = ids.length;
-			for(int i=0; i<idSize; i++) {
-				pstmt.setString(2, ids[i]);
-				pstmt.execute();
-			}
-			/*
 			for(int i=0; i<idSize; i++)
 				jdbcTemplate.update("delete from grouptable where groupnum=? and memberid=?", groupNum, ids[i]);
-			*/
-		}catch(SQLException e) {
+			
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("WITHDRAW_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;

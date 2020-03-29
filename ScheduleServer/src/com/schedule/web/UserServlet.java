@@ -172,11 +172,10 @@ public class UserServlet extends HttpServlet {
 		} else if ("withdrawMember".equals(doing)) {
 			int groupNum = Integer.parseInt(request.getParameter("groupNum"));
 			String ids = request.getParameter("ids");
-			ids = ids.substring(1, ids.length() - 1);
-
-			String[] friendIds = ids.split("\\)\\(");
+			
+			String[] friendIds = ids.split(",");
+			
 			out.print(dao.withdrawMember(groupNum, friendIds));
-
 		} 
 		else if ("getName".contentEquals(doing)) {
 			out.print(dao.getName());
