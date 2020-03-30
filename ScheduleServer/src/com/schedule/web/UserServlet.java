@@ -52,8 +52,6 @@ public class UserServlet extends HttpServlet {
 				out.print(DUP_ID);
 			else
 				out.print(SUCCESS);
-		} else if ("getInviteExist".equals(doing)) {
-			out.print(dao.getInviteExist());
 		} else if ("getGroups".equals(doing)) {
 			out.print(dao.getGroups());
 		} else if ("deleteGroup".equals(doing)) {
