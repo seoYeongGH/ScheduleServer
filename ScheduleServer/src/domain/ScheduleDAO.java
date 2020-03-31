@@ -14,6 +14,7 @@ import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 import structure.ScheduleObject;
 import structure.USession;
@@ -37,7 +38,8 @@ public class ScheduleDAO {
 	DataSource dataSource;
 	private JdbcTemplate jdbcTemplate;
 	
-	public ScheduleDAO() {}
+	public ScheduleDAO() {
+	}
 	
 	public void setDataSource(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
@@ -68,34 +70,25 @@ public class ScheduleDAO {
 	}
 	
 	public int addSchedule(int groupNum, String date,String startTime, String endTime, String schedule) {
-		Connection con = null;
 		int code = ADD_SUCCESS;
 		
 		try {
-			con = getConnection();
+			String id;
+			Integer insertNum;
 			
-			String sql = "insert into scheduletable values(?,?,?,?,?,?)";
-			PreparedStatement pstmt = con.prepareStatement(sql);
-
 			if(groupNum == FOR_USER) {
-				pstmt.setString(1, USession.getInstance().getId());
-				pstmt.setNull(2, Types.INTEGER);
+				id = USession.getInstance().getId();
+				insertNum = null;
 			}
 			else {
-				pstmt.setNull(1, Types.VARCHAR);
-				pstmt.setInt(2, groupNum);	
+				id = null;
+				insertNum = groupNum;
 			}
-			pstmt.setString(3, date);
-			pstmt.setString(4, startTime);
-			pstmt.setString(5, endTime);
-			pstmt.setString(6,schedule);
-			pstmt.executeQuery();
 			
+			jdbcTemplate.update("insert into scheduletable values(?,?,?,?,?,?)", id, insertNum, date, startTime, endTime, schedule);
 		}catch(Exception e) {
 			code = ERR;
 			System.out.println("INSERT_SCH_ERR: "+e.toString());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
@@ -246,85 +239,40 @@ public class ScheduleDAO {
 	}
 	
 	public int deleteSchedule(int groupNum, String schedule, String date, String startTime, String endTime) {
-		Connection con = null;
 		int code = DELETE_SUCCESS;
+		
 		try {
-			con = getConnection();
-			
-			PreparedStatement pstmt;
-			
-			if(groupNum == FOR_USER) {
-			String sql = "delete from scheduletable where "
-					+ "userid=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
-			
-			pstmt = con.prepareStatement(sql);
-			pstmt.setString(1,USession.getInstance().getId());
-			pstmt.setString(2, date);
-			pstmt.setString(3, startTime);
-			pstmt.setString(4, endTime);
-			pstmt.setString(5, schedule);
-			}
-			else {
-				String sql = "delete from scheduletable where "
-						+ "groupNum=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
-				
-				pstmt = con.prepareStatement(sql);
-				pstmt.setInt(1,groupNum);
-				pstmt.setString(2, date);
-				pstmt.setString(3, startTime);
-				pstmt.setString(4, endTime);
-				pstmt.setString(5, schedule);
-			}
-			
-			pstmt.executeQuery();
-			
-		}catch(SQLException e) {
+			if(groupNum == FOR_USER) 
+				jdbcTemplate.update("delete from scheduletable where userid=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1",
+									USession.getInstance().getId(), date, startTime, endTime, schedule);
+			else
+				jdbcTemplate.update("delete from scheduletable where groupNum=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1",
+									groupNum, date, startTime, endTime, schedule);
+		}catch(Exception e) {
 			System.out.println("DELETE_SCHEDULE_EXP: "+e.getMessage());
 			code = ERR;
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
 	}
 	
 	public int modifySchedule(int groupNum, String[] datas) {
-		Connection con = null;
 		int code = MOD_SUCCESS;
 		
 		try {
-			con = getConnection();
+			if(groupNum == FOR_USER)
+				jdbcTemplate.update("update scheduletable set schedule=?, starttime=?, endtime=? "
+					+ "where userid=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1",
+					datas[0],datas[1],datas[2],datas[3],datas[4],datas[5],datas[6],datas[7]);
 			
-			PreparedStatement pstmt = null;
-			if(groupNum == FOR_USER) {
-				String sql = "update scheduletable set schedule=?, starttime=?, endtime=? "
-					+ "where userid=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
+			else
+				jdbcTemplate.update("update scheduletable set schedule=?, starttime=?, endtime=? "
+						+ "where groupNum=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1",
+						datas[0],datas[1],datas[2],groupNum,datas[4],datas[5],datas[6],datas[7]);
 			
-				 pstmt = con.prepareStatement(sql);
-				for(int i=0; i<datas.length; i++) {
-					pstmt.setString(i+1, datas[i]);
-				}
-				
-			}
-			else {
-				System.out.println("GROUP "+datas[3]);
-				String sql = "update scheduletable set schedule=?, starttime=?, endtime=? "
-						+ "where groupNum=? and scheduledate=? and starttime=? and endtime=? and schedule=? and rownum=1";
-				
-					 pstmt = con.prepareStatement(sql);
-					for(int i=0; i<datas.length; i++) {
-						if(i!=3)
-							pstmt.setString(i+1, datas[i]);
-						else
-							pstmt.setInt(i+1, groupNum);
-					}
-			}
-			pstmt.executeQuery();
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("MODIFY_SCHEDULE_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
