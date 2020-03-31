@@ -26,6 +26,7 @@ import javax.sql.DataSource;
 
 import org.json.JSONException;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -38,16 +39,6 @@ import structure.InviteObject;
 import structure.USession;
 
 public class UserDAO {
-	static {
-		try {
-			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-			System.out.println("Connect");
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-		}
-	}
-	
-	DataSource dataSource;
 	private JdbcTemplate jdbcTemplate;
 	private RowMapper<String> stringMapper;
 	
@@ -57,58 +48,19 @@ public class UserDAO {
 				return rs.getString(1);
 			}
 		};
-		
 	}
 	
 	public void setDataSource(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
-		this.dataSource = dataSource;
-	}
-	
-	public Connection getConnection() {
-		Connection con = null;
-
-		try {
-			con = dataSource.getConnection();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return con;
-	}
-
-	public void closeConnection(Connection con) {
-		if (con != null) {
-			try {
-				con.close();
-			} catch (Exception e) {
-			}
-		}
-
-		return;
 	}
 
 	public boolean chkIdDup(String id) {
-		Connection con = null;
 		boolean flag = false;
+		int exist=-1;
 
-		try {
-			con = getConnection();
-			String sql = "select id from usertable where id=?";
-
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, id);
-
-			ResultSet rs = pstmt.executeQuery();
-
-			if (rs.next())
-				flag = true;
-
-		} catch (Exception e) {
-			System.out.println("CHK_ID_EXP: " + e.toString());
-		} finally {
-			closeConnection(con);
-		}
+		exist = jdbcTemplate.queryForInt("select count(*) from usertable where exists(select * from usertable where id=?)",id);
+		if(exist>0)
+			flag=true;
 
 		return flag;
 	}
@@ -150,71 +102,39 @@ public class UserDAO {
 	}
 
 	private boolean chkUserDup(String id, String name, String email) {
-		Connection con = null;
+		int exist=-1;
 		boolean flag = false;
-
-		try {
-			con = getConnection();
-
-			String sql = "select id from usertable where email=? and name=?";
-
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, email);
-			pstmt.setString(2, name);
-
-			ResultSet rs = pstmt.executeQuery();
-
-			if (rs.next())
-				flag = true;
-			else
-				flag = false;
-
-		} catch (Exception e) {
-			System.out.println("CHK_USER_DATA_EXP: " + e.getMessage());
-		} finally {
-			closeConnection(con);
-		}
-
+		
+		exist = jdbcTemplate.queryForInt("select count(*) from usertable where exists(select * from usertable where email=? and name=?)", email, name);
+		if(exist>0)
+			flag=true;
+		
 		return flag;
 	}
 	
 	public int findId(String name, String email) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
+			String id = jdbcTemplate.queryForObject("select id from usertable where name=? and email=?", new Object[] {name, email}, stringMapper);
+			String pw = "";
 			
-			String sql = "select id from usertable where name=? and email=?";
+			for(int i=0; i<6; i++)
+				pw += (int)(Math.random()*10);
+
+			code = changePw(id, BCrypt.hashpw(pw, BCrypt.gensalt(12)));
 			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, name);
-			pstmt.setString(2, email);
+			MailSender sender = MailSender.getInstance();
+			sender.sendMail(email, name+"님의 회원정보\n"
+					+ "아이디: "+id+"\n"
+					+ "임시 비밀번호: "+pw+"\n"
+					+"SCHappy에서 로그인 후 비밀번호를 꼭 변경해주세요!");
 			
-			ResultSet rs = pstmt.executeQuery();
-			
-			if(rs.next()) {
-				String id = rs.getString("id");
-				String pw = "";
-				for(int i=0; i<6; i++)
-					pw += (int)(Math.random()*10);
-				
-				code = changePw(id, BCrypt.hashpw(pw, BCrypt.gensalt(12)));
-				
-				MailSender sender = MailSender.getInstance();
-				sender.sendMail(email, name+"님의 회원정보\n"
-						+ "아이디: "+id+"\n"
-						+ "임시 비밀번호: "+pw+"\n"
-						+"SCHappy에서 로그인 후 비밀번호를 꼭 변경해주세요!");
-			}
-			else {
-				code = NO_DATA;
-			}
+		}catch(EmptyResultDataAccessException e) {
+			code = NO_DATA;
 		}catch(Exception e) {
 			code = ERR;
 			System.out.println("FIND_ID_ERR: "+e.toString());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
@@ -267,28 +187,19 @@ public class UserDAO {
 	}
 	
 	public int chkFrdExist(String frdName, String frdId) {
-		Connection con = null;
 		int code = SUCCESS;
 		
 		try {
-			con = getConnection();
-			
-			String sql = "select id from usertable where id=? and name=?";
+			int exist=-1;
 
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, frdId);
-			pstmt.setString(2, frdName);
-			
-			ResultSet rs = pstmt.executeQuery();
-			if(!rs.next()) {
-				code = NO_DATA;
-			}
-		}catch(SQLException e) {
+			exist = jdbcTemplate.queryForInt("select count(*) from usertable where exists(select * from usertable where id=? and name=?)",frdId, frdName);
+			if(exist<=0)
+				code=NO_DATA;
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("CHK_FRD_EXIST_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
+		
 		return code;
 	}
 	
@@ -378,40 +289,20 @@ public class UserDAO {
 	}
 	
 	public int deleteGroup(int groupNum) {
-		Connection con = null;
 		int code = SUCCESS;
 		
-		try {
-			con = getConnection();
+		try {			
+			jdbcTemplate.update("delete from grouptable where groupnum=? and memberid=?", groupNum, USession.getInstance().getId());
 			
-			String sql = "delete from grouptable where groupnum=? and memberid=?";
+			int members = -1;
+			members = jdbcTemplate.queryForInt("select count(*) from grouptable where exists(select * from usertable where groupnum=?)", groupNum);
 			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, groupNum);
-			pstmt.setString(2, USession.getInstance().getId());
+			if(members<=0)
+				jdbcTemplate.update("delete from groupproto where groupnum=?", groupNum);
 			
-			pstmt.execute();
-			
-			sql = "select count(*) from grouptable where groupnum=?";
-			
-			pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, groupNum);
-			
-			ResultSet rs = pstmt.executeQuery();
-			if(rs.next()) {
-				if(rs.getInt(1)<=0) {
-					sql = "delete from groupproto where groupnum=?";
-					
-					pstmt = con.prepareStatement(sql);
-					pstmt.setInt(1, groupNum);
-					pstmt.execute();
-				}
-			}
-		}catch(SQLException e) {
+		}catch(Exception e) {
 			code = ERR;
 			System.out.println("DEL_GROUP_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
 		}
 		
 		return code;
@@ -471,47 +362,29 @@ public class UserDAO {
 	}
 
 	
-	public ArrayList<InviteObject> getInvites(){
-		Connection con = null;
-		ArrayList<InviteObject> invites = new ArrayList<InviteObject>();
-		
-		try {
-			con = getConnection();
-			
-			String sql = "select b.groupnum,b.groupname,b.managerid "
-					+ "from invitetable a join groupproto b on a.groupnum = b.groupnum where userid=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, USession.getInstance().getId());
-			
-			PreparedStatement innerPstmt;
-			ResultSet innerRs;
-			
-			ResultSet rs = pstmt.executeQuery();
-			while(rs.next()) {
-				InviteObject obj = new InviteObject();
-				
-				obj.put("groupNum",rs.getInt("groupnum"));
-				obj.put("groupName",rs.getString("groupname"));
-				
-				sql = "select name from usertable where id=?";
-				
-				innerPstmt = con.prepareStatement(sql);
-				innerPstmt.setString(1, rs.getString("managerid"));
-				
-				innerRs = innerPstmt.executeQuery();
-				if(innerRs.next())
-					obj.put("managerName",innerRs.getString("name"));
-				
-				invites.add(obj);
-			}
-		}catch(Exception e) {
-			System.out.println("GET_INVITE_EXP: "+e.getMessage());
-		}finally {
-			closeConnection(con);
-		}
-		
-		return invites;
+	public List<InviteObject> getInvites(){
+			return jdbcTemplate.query("select b.groupnum,b.groupname,b.managerid "
+					+ "from invitetable a join groupproto b on a.groupnum = b.groupnum where userid=?", new Object[] {USession.getInstance().getId()},
+						
+					new RowMapper<InviteObject>() {
+						public InviteObject mapRow(ResultSet rs, int rowNum) throws SQLException{
+							InviteObject invite = new InviteObject();
+							
+							try {
+							invite.put("groupNum",rs.getInt("groupnum"));
+							invite.put("groupName",rs.getString("groupname"));
+							
+							String managerName = jdbcTemplate.queryForObject("select name from usertable where id=?", 
+																			 new Object[] {rs.getString("managerId")}, stringMapper);
+							invite.put("managerName", managerName);
+							
+							}catch(JSONException e) {
+								System.out.println("GET_INVITE_EXP: "+e.getMessage());
+							}
+							
+							return invite;
+						}
+					});
 	}
 	
 	public int deleteInvite(int groupNum) {
@@ -605,32 +478,19 @@ public class UserDAO {
 	}
 	
 	public HashMap<String, Object> autoLogin(String userCode) {
-		Connection con = null;
-		
 		HashMap<String, Object> hashMap = new HashMap<>();
 		int code = AUTO_LOG_SUCCESS;
 		
 		try {
-			con = getConnection();
+			String id = jdbcTemplate.queryForObject("select id from codetable where usercode=?", new Object[] {userCode}, stringMapper);
 			
-			String sql = "select id from codetable where usercode=?";
-			
-			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setString(1, userCode);
-			
-			ResultSet rs = pstmt.executeQuery();
-			if(rs.next()) {
-				USession.getInstance().setId(rs.getString(1));
-				hashMap.put("id", rs.getString(1));
-			}
-			else {
-				code = ERR_AUTO_LOG_IN;
-			}
-		}catch(SQLException e) {
+			USession.getInstance().setId(id);
+			hashMap.put("id", id);
+		}catch(Exception e) {
 			code = ERR_AUTO_LOG_IN;
 			System.out.println("AUTO_LOGIN_ERR"+e.getMessage());
+			
 		}finally {
-			closeConnection(con);
 			hashMap.put("code", code);
 		}
 		
