@@ -5,10 +5,10 @@
 						   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
 	   <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-	   	<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-		<property name="url" value="jdbc:oracle:thin:@localhost:1521:xe"/>
-		<property name="username" value="admin"/>
-		<property name="password" value="7530"/>
+	   	<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/scheduledb?characterEncoding=utf8"/>
+		<property name="username" value="USER_ID"/>
+		<property name="password" value="USER_PW"/>
 	   </bean>
 	   
 	   <bean id="userDAO" class="domain.UserDAO">
