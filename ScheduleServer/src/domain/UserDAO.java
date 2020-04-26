@@ -53,7 +53,7 @@ public class UserDAO {
 		boolean flag = false;
 		int exist=-1;
 
-		exist = jdbcTemplate.queryForInt("select count(*) from usertable where exists(select * from usertable where id=?)",id);
+		exist = jdbcTemplate.queryForInt("select count(*) from usertable where id=?",id);
 		if(exist>0)
 			flag=true;
 
@@ -100,7 +100,7 @@ public class UserDAO {
 		int exist=-1;
 		boolean flag = false;
 		
-		exist = jdbcTemplate.queryForInt("select count(*) from usertable where exists(select * from usertable where email=? and name=?)", email, name);
+		exist = jdbcTemplate.queryForInt("select count(*) from usertable where email=? and name=?", email, name);
 		if(exist>0)
 			flag=true;
 		
@@ -187,7 +187,8 @@ public class UserDAO {
 		try {
 			int exist=-1;
 
-			exist = jdbcTemplate.queryForInt("select count(*) from usertable where exists(select * from usertable where id=? and name=?)",frdId, frdName);
+			exist = jdbcTemplate.queryForInt("select count(*) from usertable where id=? and name=?",frdId, frdName);
+			
 			if(exist<=0)
 				code=NO_DATA;
 		}catch(Exception e) {
@@ -290,7 +291,7 @@ public class UserDAO {
 			jdbcTemplate.update("delete from grouptable where groupnum=? and memberid=?", groupNum, USession.getInstance().getId());
 			
 			int members = -1;
-			members = jdbcTemplate.queryForInt("select count(*) from grouptable where exists(select * from usertable where groupnum=?)", groupNum);
+			members = jdbcTemplate.queryForInt("select count(*) from grouptable where groupnum=?", groupNum);
 			
 			if(members<=0)
 				jdbcTemplate.update("delete from groupproto where groupnum=?", groupNum);
